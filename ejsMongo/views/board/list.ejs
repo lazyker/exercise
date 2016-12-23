@@ -1,0 +1,32 @@
+<% include ../header.ejs %>
+        
+    <table class="table table-bordered">
+        <tr>
+            <th>제목</th>
+            <th>날짜</th>
+            <th>삭제</th>
+        </tr>
+        <% boardList.forEach(function(item) { %>
+        <tr>
+            <td><a href="/board/detail/<%=item.id%>"><%=item.title%></a></td>
+            <td>
+                <% 
+                    var date = new Date(item.creted_at);
+                    console.log(item.creted_at);
+                    var getDate = {
+                        Year : date.getFullYear(),
+                        month : date.getMonth()+1,
+                        day : date.getDate()
+                    }; 
+                %>
+                <%=getDate.Year%>-<%=getDate.month%>-<%=getDate.day%>
+            </td>
+            <td><a href="/board/delete/<%=item.id%>" class="btn btn-danger">삭제</a></td>
+        </tr>
+        <% }) %>
+    </table>
+    <div>
+        <a href="/board/write" class="btn btn-primary">글작성</a>
+    </div>
+  
+<% include ../footer.ejs %>

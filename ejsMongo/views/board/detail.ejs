@@ -1,0 +1,30 @@
+<% include ../header.ejs %>
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            제목 : <%= boardDetail.title %>
+        </div>
+        <div class="panel-body">
+            <p>
+                <% 
+                    var date = new Date(boardDetail.creted_at);
+                    var getDate = {
+                        Year : date.getFullYear(),
+                        month : date.getMonth()+1,
+                        day : date.getDate()
+                    }; 
+                %>
+                작성일 : <%=getDate.Year%>-<%=getDate.month%>-<%=getDate.day%>
+            </p>
+            <div>내용 : 
+                <%= boardDetail.content %>
+            </div>
+        </div>
+    </div>
+    <div style="margin-top: 20px;">
+        <a href="/board" class="btn btn-primary">목록으로</a>
+        <a href="/board/edit/<%= boardDetail.id %>" class="btn btn-default">수정</a>
+        <a href="/board/delete/<%= boardDetail.id %>" class="btn btn-danger">삭제</a>
+    </div>
+    
+<% include ../footer.ejs %>
