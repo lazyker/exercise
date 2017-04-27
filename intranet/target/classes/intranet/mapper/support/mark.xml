@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" > 
+
+<mapper namespace="mark">
+
+    <!-- 관심DB 리스트 -->
+    <select id="getMarkList" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			@ROWNUM := @ROWNUM + 1 AS ROWNUM
+			,MARK_ID
+			,U.USR_ID
+			,USR_NM
+			,CONCAT(USR_NM, '(', IFNULL(RIGHT(YEAR, 2), ''), ',',
+				CASE GENDER 
+					WHEN 'M' THEN '남'
+					WHEN 'W' THEN '여'
+					ELSE ''
+				END ,')') AS USR_INFO
+			,SUBSTRING_INDEX(SUBSTRING_INDEX(ACADEMIC_1, ':', 2), ':', -1) AS USR_SCHOOL
+			,SUBSTRING_INDEX(SUBSTRING_INDEX(ACADEMIC_1, ':', 3), ':', -1) AS USR_MAJOR
+			,C_NAME
+			,JOB1_NM
+			,JOB2_NM
+			,U.CON_ID
+		FROM
+			I_MARK M 
+			INNER JOIN I_USER U
+				ON (M.USR_ID = U.USR_ID)
+				,(SELECT @ROWNUM := 0) TMP
+		WHERE
+			U.DEL_DATE IS NULL
+			AND M.CON_ID = #{conId, jdbcType=VARCHAR}
+		ORDER BY ROWNUM DESC
+        LIMIT #{startRowNum, javaType=INT}, 15
+    </select>
+    
+    <!-- 관심DB 리스트 총 개수 -->
+    <select id="getMarkTotalCount" parameterType="hashmap" resultType="int">
+        SELECT 
+        	COUNT(*) 
+        FROM
+			I_MARK M 
+			INNER JOIN I_USER U
+				ON (M.USR_ID = U.USR_ID)
+				,(SELECT @ROWNUM := 0) TMP
+		WHERE
+			U.DEL_DATE IS NULL
+			AND M.CON_ID = #{conId, jdbcType=VARCHAR}
+			<if test='usrId != null and usrId != ""'>
+		    	AND M.USR_ID = #{usrId, jdbcType=VARCHAR}
+			</if> 
+    </select>
+    
+    <!-- 관심DB 등록 -->
+    <insert id="setMark" parameterType="hashmap">
+        INSERT INTO I_MARK
+        (
+            CON_ID
+            ,USR_ID
+            ,REG_DATE
+        )
+        VALUES
+        (
+            #{conId, jdbcType=VARCHAR}
+            ,#{usrId, jdbcType=VARCHAR}
+            ,NOW()
+        )
+        <selectKey resultType="int" keyProperty="markId" order="AFTER">
+        	SELECT LAST_INSERT_ID()
+    	</selectKey>
+    </insert>
+    
+    <!-- 관심DB 해제 -->
+    <update id="delMark" parameterType="hashmap">
+        DELETE 
+        FROM 
+        	I_MARK
+        WHERE
+        	MARK_ID = #{markId, jdbcType=NUMERIC}
+    </update>
+    
+</mapper>

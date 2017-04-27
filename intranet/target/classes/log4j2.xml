@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+
+	<!-- Appender, Layout 설정 -->
+    <Appenders>
+        <Console name="console">
+            <PatternLayout pattern="[%d{yyyy-MM-dd HH:mm:ss}] [%p] [%c] %m%n"/>
+        </Console>
+    </Appenders>
+	
+	<!-- Logger 설정 -->
+	<Loggers>
+		<Logger name="com.cozel.intranet" additivity="false" level="debug">
+            <AppenderRef ref="console"/>
+        </Logger>
+
+        <Logger name="org.springframework" additivity="false" level="info">
+            <AppenderRef ref="console"/>
+        </Logger>
+
+<!--         <Logger name="org.apache.tiles.definition.digester" additivity="false" level="info"> -->
+<!--             <AppenderRef ref="console"/> -->
+<!--         </Logger> -->
+<!--         <Logger name="sax" additivity="false" level="info"> -->
+<!--             <AppenderRef ref="console"/> -->
+<!--         </Logger> -->
+
+        <Logger name="org.apache.http.impl.conn" additivity="false" level="info">
+            <AppenderRef ref="console"/>
+        </Logger>
+	
+		<!--MyBatis-->
+		<Logger name="org.mybatis" additivity="false" level="off">
+            <AppenderRef ref="console"/>
+        </Logger>
+        <Logger name="org.mybatis.spring.SqlSessionUtils" additivity="false" level="off">
+            <AppenderRef ref="console"/>
+        </Logger>
+        <Logger name="org.mybatis.spring.SqlSessionFactoryBean" additivity="false" level="off">
+            <AppenderRef ref="console"/>
+        </Logger>
+        <Logger name="org.apache.ibatis" additivity="false" level="off">
+            <AppenderRef ref="console"/>
+        </Logger>
+        
+        <!-- log SQL with timing information, post execution -->
+        <Logger name="jdbc.connection" additivity="false" level="off">
+            <AppenderRef ref="console"/>
+        </Logger>
+        <Logger name="jdbc.audit" additivity="false" level="off">
+            <AppenderRef ref="console"/>
+        </Logger>
+        <Logger name="jdbc.sql" additivity="false" level="off">
+            <AppenderRef ref="console"/>
+        </Logger>
+        <Logger name="jdbc.sqlonly" additivity="false" level="info">
+            <AppenderRef ref="console"/>
+        </Logger>
+        <Logger name="jdbc.sqltiming" additivity="false" level="off">
+            <AppenderRef ref="console"/>
+        </Logger>
+        <Logger name="jdbc.resultset" additivity="false" level="off">
+            <AppenderRef ref="console"/>
+        </Logger>
+        <Logger name="jdbc.resultsettable" additivity="false" level="info">
+            <AppenderRef ref="console"/>
+        </Logger>
+        
+		<!-- Root Logger -->
+        <Root level="error">
+            <AppenderRef ref="console"/>
+        </Root>
+	</Loggers>
+	
+</Configuration>

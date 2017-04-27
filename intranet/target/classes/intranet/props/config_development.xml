@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>development</comment>
+    <entry key="env">development</entry>
+    <!-- development / production -->
+	<entry key="jdbc.driver">com.mysql.jdbc.Driver</entry>
+    <entry key="jdbc.url">jdbc:mysql://61.97.131.25:3506/cozel?allowMultiQueries=true&amp;useUnicode=true&amp;characterEncoding=utf8</entry>
+    <entry key="jdbc.user">root</entry>
+    <entry key="jdbc.pwd">wpsldpf2015</entry>
+    
+    <entry key="sms.jdbc.driver">com.microsoft.sqlserver.jdbc.SQLServerDriver</entry>
+    <entry key="sms.jdbc.url2">jdbc:sqlserver://110.4.78.164:1433;databaseName=ZNL_SM_DB</entry>
+    <entry key="sms.jdbc.user2">znl_sm_ok</entry>
+    <entry key="sms.jdbc.pwd2">oksm_+QR</entry>
+
+    <!-- file -->
+    <!-- 리눅스에서 윈도우로 변경 -->
+<!--     <entry key="file.upload.path">/home/cozelh/upload/</entry> -->
+    <entry key="file.upload.path">D:/cozel/upload/</entry>
+</properties>

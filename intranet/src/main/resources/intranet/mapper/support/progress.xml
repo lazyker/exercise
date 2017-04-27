@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" > 
+
+<mapper namespace="progress">
+
+    <!-- 진행현황 리스트 -->
+    <select id="getProgressList" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			@ROWNUM := @ROWNUM + 1 AS ROWNUM
+			,U.USR_ID
+			,P.COM_NM
+			,P.POS_NM
+			,U.USR_NM
+			,CONCAT(U.USR_NM, ' (', IFNULL(RIGHT(YEAR, 2), ''), ',',
+				CASE U.GENDER
+					WHEN 'M' THEN '남'
+					WHEN 'W' THEN '여'
+					ELSE ''
+				END, ')') AS USR_INFO
+			,FN_CONSULTENTNAME(P.CON_ID) AS CON_NM
+			,FN_CONSULTENTNAME(S.CON_ID) AS REC_NM
+			,S.STATE_NM
+			,DATE_FORMAT(R.REG_DATE, "%Y-%m-%d") AS REG_DATE
+			,DATE_FORMAT(S.STATE_DATE, "%Y-%m-%d") AS PROGRESS_DATE
+		FROM
+			I_REC_PRESENT R
+			LEFT OUTER JOIN I_POSITION P ON (R.POS_ID = P.POS_ID)
+			LEFT OUTER JOIN I_USER U ON (R.USR_ID = U.USR_ID AND U.DEL_DATE IS NULL)
+			INNER JOIN I_PRO_STATUS S ON (R.REC_ID = S.REC_ID AND S.DEL_DATE IS NULL)
+			LEFT OUTER JOIN I_CONSULTANT C ON (P.CON_ID = C.CON_ID)
+			LEFT OUTER JOIN I_CONSULTANT C2 ON (R.CON_ID = C2.CON_ID)
+			,(SELECT @ROWNUM := 0) TMP
+		WHERE
+			R.DEL_DATE IS NULL
+		<if test='searchText != null and searchText != ""'>
+		    AND (P.POS_NM LIKE CONCAT('%', #{searchText, jdbcType=VARCHAR}, '%') 
+		    OR (P.COM_NM LIKE CONCAT('%', #{searchText, jdbcType=VARCHAR}, '%'))
+		    OR (C.CON_NM LIKE CONCAT('%', #{searchText, jdbcType=VARCHAR}, '%')))
+		</if>
+		<if test='adminYn == "N"'>
+			AND S.STATE IN ('A', 'B', 'C', 'D', 'G', 'H')
+		</if>
+		<if test='state != null and state != ""'>
+			AND S.STATE = #{state, jdbcType=VARCHAR}
+		</if>
+		<if test='comNm != null and comNm != ""'>
+		    AND P.COM_NM LIKE CONCAT('%', #{comNm, jdbcType=VARCHAR}, '%')
+		</if>
+		<if test='posNm != null and posNm != ""'>
+			AND P.POS_NM LIKE CONCAT('%', #{posNm, jdbcType=VARCHAR}, '%')
+		</if>
+		<if test='usrNm != null and usrNm != ""'> <!-- 후보자 -->
+			AND U.USR_NM LIKE CONCAT('%', #{usrNm, jdbcType=VARCHAR}, '%')
+		</if>
+		<if test='conNm != null and conNm != ""'> <!-- 컨설턴트 -->
+			AND C.CON_NM LIKE CONCAT('%', #{conNm, jdbcType=VARCHAR}, '%')
+		</if>
+		<if test='recNm != null and recNm != ""'> <!-- 추천자 -->
+			AND C2.CON_NM LIKE CONCAT('%', #{recNm, jdbcType=VARCHAR}, '%')
+		</if>
+		<if test='(startDate != null  and startDate != "") and (endDate != null and endDate != "")'>
+		    AND DATE_FORMAT(R.REG_DATE, "%Y-%m-%d") BETWEEN #{startDate} AND #{endDate}
+		</if>
+		<if test='(proStartDate != null  and proStartDate != "") and (proEndDate != null and proEndDate != "")'>
+		    AND DATE_FORMAT(S.REG_DATE, "%Y-%m-%d") BETWEEN #{proStartDate} AND #{proEndDate}
+		</if>
+		ORDER BY ROWNUM DESC, P.REG_DATE DESC
+        LIMIT #{startRowNum, javaType=INT}, 15
+    </select>
+    
+    <!-- 진행현황 리스트 총 개수 -->
+    <select id="getProgressTotalCount" parameterType="hashmap" resultType="int">
+		SELECT
+			COUNT(*)
+		FROM
+			I_REC_PRESENT R
+			LEFT OUTER JOIN I_POSITION P ON (R.POS_ID = P.POS_ID)
+			LEFT OUTER JOIN I_USER U ON (R.USR_ID = U.USR_ID AND U.DEL_DATE IS NULL)
+			INNER JOIN I_PRO_STATUS S ON (R.REC_ID = S.REC_ID AND S.DEL_DATE IS NULL)
+			LEFT OUTER JOIN I_CONSULTANT C ON (P.CON_ID = C.CON_ID)
+			LEFT OUTER JOIN I_CONSULTANT C2 ON (R.CON_ID = C2.CON_ID)
+			,(SELECT @ROWNUM := 0) TMP
+		WHERE
+			R.DEL_DATE IS NULL
+		<if test='searchText != null and searchText != ""'>
+		    AND (P.POS_NM LIKE CONCAT('%', #{searchText, jdbcType=VARCHAR}, '%') 
+		    OR (P.COM_NM LIKE CONCAT('%', #{searchText, jdbcType=VARCHAR}, '%'))
+		    OR (C.CON_NM LIKE CONCAT('%', #{searchText, jdbcType=VARCHAR}, '%')))
+		</if>
+		<if test='adminYn == "N"'>
+			AND S.STATE IN ('A', 'B', 'C', 'D', 'G', 'H')
+		</if>
+		<if test='state != null and state != ""'>
+			AND S.STATE = #{state, jdbcType=VARCHAR}
+		</if>
+		<if test='comNm != null and comNm != ""'>
+		    AND P.COM_NM LIKE CONCAT('%', #{comNm, jdbcType=VARCHAR}, '%')
+		</if>
+		<if test='posNm != null and posNm != ""'>
+			AND P.POS_NM LIKE CONCAT('%', #{posNm, jdbcType=VARCHAR}, '%')
+		</if>
+		<if test='usrNm != null and usrNm != ""'> <!-- 후보자 -->
+			AND U.USR_NM LIKE CONCAT('%', #{usrNm, jdbcType=VARCHAR}, '%')
+		</if>
+		<if test='conNm != null and conNm != ""'> <!-- 컨설턴트 -->
+			AND C.CON_NM LIKE CONCAT('%', #{conNm, jdbcType=VARCHAR}, '%')
+		</if>
+		<if test='recNm != null and recNm != ""'> <!-- 추천자 -->
+			AND C2.CON_NM LIKE CONCAT('%', #{recNm, jdbcType=VARCHAR}, '%')
+		</if>
+		<if test='(startDate != null  and startDate != "") and (endDate != null and endDate != "")'>
+		    AND DATE_FORMAT(R.REG_DATE, "%Y-%m-%d") BETWEEN #{startDate} AND #{endDate}
+		</if>
+		<if test='(proStartDate != null  and proStartDate != "") and (proEndDate != null and proEndDate != "")'>
+		    AND DATE_FORMAT(S.REG_DATE, "%Y-%m-%d") BETWEEN #{proStartDate} AND #{proEndDate}
+		</if>
+    </select>
+    
+</mapper>

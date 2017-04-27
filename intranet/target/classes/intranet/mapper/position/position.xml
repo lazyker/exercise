@@ -1,0 +1,626 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" > 
+
+<mapper namespace="position">
+
+    <!-- 포지션 리스트  -->
+    <select id="getPositionList" parameterType="hashmap" resultType="hashmap">
+    	SELECT
+    		@ROWNUM := @ROWNUM + 1 AS ROWNUM
+    		,Z.*
+    	FROM (
+			        SELECT
+			            A.POS_ID
+			            ,A.POS_NM
+			            ,CAREER
+			            ,A.COM_ID
+			            ,A.COM_NM
+			            ,CASE RULE 
+							WHEN 'A' THEN '단독'
+							WHEN 'B' THEN '협업'
+							WHEN 'C' THEN '양수도'
+							WHEN 'D' THEN '공동'
+							WHEN 'E' THEN '기타'
+						END AS RULE
+						,IFNULL(R.CNT, 0) AS REC_CNT
+			            ,A.CON_NM
+			            ,FN_CONSULTENTNAME(A.S_CON_ID) AS S_CON_NM
+			            ,CASE POS_STATUS
+			            	WHEN 'A' THEN '진행'
+			            	WHEN 'B' THEN '성공'
+			            	WHEN 'C' THEN '마감'
+			            	WHEN 'D' THEN '보류'
+			            END AS POS_STATUS
+						,A.PUBLIC_YN
+			            ,DATE_FORMAT(A.REG_DATE, "%Y-%m-%d") AS REG_DATE
+			            ,DATE_FORMAT(A.MOD_DATE, "%Y-%m-%d") AS MOD_DATE
+			        FROM 
+			            I_POSITION A
+			            LEFT OUTER JOIN I_COMPANY B
+			            	ON (A.COM_ID = B.COM_ID)
+			            LEFT OUTER JOIN (
+			            							SELECT POS_ID, COUNT(*) AS CNT 
+			            							FROM I_REC_PRESENT
+			            							WHERE DEL_DATE IS NULL 
+			            							GROUP BY POS_ID
+			            						) R 
+			            	ON (A.POS_ID = R.POS_ID)
+			            ,(SELECT @ROWNUM := 0) TMP
+					WHERE 
+						A.DEL_DATE IS NULL
+					<if test='searchText != null and searchText != ""'>
+					    AND (POS_NM LIKE CONCAT('%', #{searchText, jdbcType=VARCHAR}, '%') 
+					    OR A.COM_NM LIKE CONCAT('%', #{searchText, jdbcType=VARCHAR}, '%')
+					    OR A.CON_NM LIKE CONCAT('%', #{searchText, jdbcType=VARCHAR}, '%'))
+					</if>
+					<if test='posNm != null and posNm != ""'>
+						AND POS_NM LIKE CONCAT('%', #{posNm, jdbcType=VARCHAR}, '%')
+					</if>
+					<if test='comNm != null and comNm != ""'>
+					    AND A.COM_NM LIKE CONCAT('%', #{comNm, jdbcType=VARCHAR}, '%')
+					</if>
+					<if test='industry1 != null and industry1 != ""'>
+					    AND B.INDUSTRY1 = #{industry1, jdbcType=VARCHAR}
+					</if>
+					<if test='industry2 != null and industry2 != ""'>
+					    AND B.INDUSTRY2 = #{industry2, jdbcType=VARCHAR} 
+					</if>
+					<if test='job1 != null and job1 != ""'>
+					    AND JOB1 = #{job1, jdbcType=VARCHAR}
+					</if>
+					<if test='job2 != null and job2 != ""'>
+					    AND JOB2 = #{job2, jdbcType=VARCHAR} 
+					</if>
+					<if test='rule != null and rule != ""'>
+					    AND RULE = #{rule, jdbcType=VARCHAR}
+					</if>
+					<if test='conNm != null and conNm != ""'>
+					    AND A.CON_NM LIKE CONCAT('%', #{conNm, jdbcType=VARCHAR}, '%')
+					</if>
+					<if test='posStatus != null and posStatus != ""'>
+					    AND POS_STATUS = #{posStatus, jdbcType=VARCHAR}
+					</if>
+					<if test='contents != null and contents != ""'>
+					    AND (TASK LIKE CONCAT('%', #{contents, jdbcType=VARCHAR}, '%')
+					    OR POS_CONDITION LIKE CONCAT('%', #{contents, jdbcType=VARCHAR}, '%'))
+					</if>
+					<if test='(startDate != null  and startDate != "") and (endDate != null and endDate != "")'>
+					    AND DATE_FORMAT(A.REG_DATE, "%Y-%m-%d") BETWEEN #{startDate} AND #{endDate}
+					</if>
+					<if test='adminYn == "N"'>
+						<choose>
+							<when test='authPosition == "1"'>
+								AND A.PUBLIC_YN = 'Y'
+								OR (A.PUBLIC_YN = 'N' AND A.CON_ID = #{conId, jdbcType=VARCHAR})
+								OR (A.PUBLIC_YN = 'N' AND A.S_CON_ID = #{sconId, jdbcType=VARCHAR})
+							</when>
+							<otherwise>
+								AND A.CON_ID = #{conId, jdbcType=VARCHAR}
+							</otherwise>
+						</choose>
+					</if>
+					<if test='closedDataType != null and closedDataType != ""'>
+						AND A.PUBLIC_YN = 'N'
+					</if>
+					ORDER BY A.MOD_DATE
+			) Z
+        ORDER BY ROWNUM DESC
+        LIMIT #{startRowNum, javaType=INT}, 15
+    </select>
+    
+    <!-- 포지션 리스트 총 개수 -->
+    <select id="getPositionTotalCount" parameterType="hashmap" resultType="int">
+        SELECT 
+        	COUNT(*) 
+        FROM 
+        	I_POSITION A
+            LEFT OUTER JOIN I_COMPANY B
+            	ON (A.COM_ID = B.COM_ID)
+            LEFT OUTER JOIN (
+            							SELECT POS_ID, COUNT(*) AS CNT 
+            							FROM I_REC_PRESENT 
+            							GROUP BY POS_ID
+            						) R 
+            	ON (A.POS_ID = R.POS_ID)
+        WHERE 
+			A.DEL_DATE IS NULL
+		<if test='searchText != null and searchText != ""'>
+		    AND (POS_NM LIKE CONCAT('%', #{searchText, jdbcType=VARCHAR}, '%') 
+		    OR A.COM_NM LIKE CONCAT('%', #{searchText, jdbcType=VARCHAR}, '%')
+		    OR A.CON_NM LIKE CONCAT('%', #{searchText, jdbcType=VARCHAR}, '%'))
+		</if>
+		<if test='posNm != null and posNm != ""'>
+			AND POS_NM LIKE CONCAT('%', #{posNm, jdbcType=VARCHAR}, '%')
+		</if>
+		<if test='comNm != null and comNm != ""'>
+		    AND A.COM_NM LIKE CONCAT('%', #{comNm, jdbcType=VARCHAR}, '%')
+		</if>
+		<if test='industry1 != null and industry1 != ""'>
+		    AND B.INDUSTRY1 = #{industry1, jdbcType=VARCHAR}
+		</if>
+		<if test='industry2 != null and industry2 != ""'>
+		    AND B.INDUSTRY2 = #{industry2, jdbcType=VARCHAR} 
+		</if>
+		<if test='job1 != null and job1 != ""'>
+		    AND JOB1 = #{job1, jdbcType=VARCHAR}
+		</if>
+		<if test='job2 != null and job2 != ""'>
+		    AND JOB2 = #{job2, jdbcType=VARCHAR} 
+		</if>
+		<if test='rule != null and rule != ""'>
+		    AND RULE = #{rule, jdbcType=VARCHAR}
+		</if>
+		<if test='conNm != null and conNm != ""'>
+		    AND A.CON_NM LIKE CONCAT('%', #{conNm, jdbcType=VARCHAR}, '%')
+		</if>
+		<if test='posStatus != null and posStatus != ""'>
+		    AND POS_STATUS = #{posStatus, jdbcType=VARCHAR}
+		</if>
+		<if test='contents != null and contents != ""'>
+		    AND TASK LIKE CONCAT('%', #{contents, jdbcType=VARCHAR}, '%')
+		    OR POS_CONDITION LIKE CONCAT('%', #{contents, jdbcType=VARCHAR}, '%')
+		</if>
+		<if test='(startDate != null  and startDate != "") and (endDate != null and endDate != "")'>
+		    AND DATE_FORMAT(A.REG_DATE, "%Y-%m-%d") BETWEEN #{startDate} AND #{endDate}
+		</if>
+		<if test='adminYn == "N"'>
+			<choose>
+				<when test='authPosition == "1"'>
+					AND A.PUBLIC_YN = 'Y'
+					OR (A.PUBLIC_YN = 'N' AND A.CON_ID = #{conId, jdbcType=VARCHAR})
+					OR (A.PUBLIC_YN = 'N' AND A.S_CON_ID = #{sconId, jdbcType=VARCHAR})
+				</when>
+				<otherwise>
+					AND A.CON_ID = #{conId, jdbcType=VARCHAR}
+				</otherwise>
+			</choose>
+		</if>
+    </select>
+    
+    <!-- 포지션 상세  -->
+    <select id="getPosition" parameterType="hashmap" resultType="hashmap">
+        SELECT
+            POS_ID
+            ,POS_NM
+            ,A.COM_ID
+            ,A.COM_NM
+            ,RULE
+            ,CASE RULE 
+				WHEN 'A' THEN '단독'
+				WHEN 'B' THEN '협업'
+				WHEN 'C' THEN '양수도'
+				WHEN 'D' THEN '공동'
+				WHEN 'E' THEN '기타'
+			END AS RULE_NM
+			,H_PUBLIC_YN
+            ,CASE H_PUBLIC_YN WHEN 'Y' THEN '공개' WHEN 'N' THEN '비공개' END AS H_PUBLIC_YN_NM 
+            ,A.CON_ID
+            ,A.S_CON_ID
+            ,A.CON_NM
+            ,FN_CONSULTENTNAME(A.S_CON_ID) AS S_CON_NM
+            ,POS_STATUS
+            ,CASE POS_STATUS
+            	WHEN 'A' THEN '진행'
+            	WHEN 'B' THEN '성공'
+            	WHEN 'C' THEN '마감'
+            	WHEN 'D' THEN '보류'
+            END AS POS_STATUS_NM
+            ,JOB1
+            ,JOB2
+            ,FN_CODE_NAME(JOB1) AS JOB1_NM
+            ,FN_CODE_NAME(JOB2) AS JOB2_NM
+            ,EDU
+            ,FROM_RANK
+            ,TO_RANK
+            ,CAREER
+            ,LANG
+            ,PLACE
+            ,A.PUBLIC_YN
+            ,CASE A.PUBLIC_YN WHEN 'Y' THEN '공개' WHEN 'N' THEN '비공개' END AS PUBLIC_YN_NM 
+            ,TASK
+            ,POS_CONDITION
+            ,FROM_TARGET
+            ,TO_TARGET
+            ,T_COMPANY
+            ,GENDER
+            ,CASE GENDER WHEN 'M' THEN '남' WHEN 'W' THEN '여' END AS GENDER_NM 
+            ,LICENSE
+            ,BASE
+            ,BONUS
+            ,ETC
+            ,B.SUMMARY
+            ,(SELECT CD_NM FROM I_JOB_CD WHERE CD_ID = INDUSTRY1) AS INDUSTRY1
+            ,(SELECT CD_NM FROM I_JOB_CD WHERE CD_ID = INDUSTRY2) AS INDUSTRY2
+            ,DATE_FORMAT(A.REG_DATE, "%Y-%m-%d") AS REG_DATE
+        FROM 
+            I_POSITION A
+            LEFT OUTER JOIN I_COMPANY B
+            	ON (A.COM_ID = B.COM_ID)
+        WHERE 
+            POS_ID = #{posId, jdbcType=VARCHAR}
+    </select>
+
+    <!-- 포지션 등록 -->
+    <insert id="setPosition" parameterType="hashmap">
+        <selectKey keyProperty="posId" resultType="string" order="BEFORE">
+            SELECT CONCAT("POS", LPAD(RIGHT(IFNULL(MAX(POS_ID), 0), 8)+1, 8, 0)) FROM I_POSITION
+        </selectKey>
+        INSERT INTO I_POSITION
+        (
+            POS_ID
+            ,POS_NM
+            ,COM_ID
+            ,COM_NM
+            ,RULE
+            ,H_PUBLIC_YN
+            ,CON_ID
+            ,CON_NM
+            ,S_CON_ID
+            ,POS_STATUS
+            ,JOB1
+            ,JOB2
+            ,EDU
+            ,FROM_RANK
+            ,TO_RANK
+            ,CAREER
+            ,LANG
+            ,PLACE
+            ,PUBLIC_YN
+            ,TASK
+            ,POS_CONDITION
+            ,FROM_TARGET
+            ,TO_TARGET
+            ,T_COMPANY
+            ,GENDER
+            ,LICENSE
+            ,BASE
+            ,BONUS
+            ,ETC
+            ,REG_DATE
+            ,MOD_DATE
+        )
+        VALUES
+        (
+            #{posId, jdbcType=VARCHAR}
+            ,#{posNm, jdbcType=VARCHAR}
+            ,#{comId, jdbcType=VARCHAR}
+            ,#{comNm, jdbcType=VARCHAR}
+            ,#{rule, jdbcType=VARCHAR}
+            ,#{hPublicYn, jdbcType=CHAR}
+            ,#{conId, jdbcType=VARCHAR}
+            ,(SELECT CON_NM FROM I_CONSULTANT WHERE CON_ID = #{conId, jdbcType=VARCHAR})
+            ,#{sConId, jdbcType=VARCHAR}
+            ,#{posStatus, jdbcType=VARCHAR}
+            ,#{job1, jdbcType=VARCHAR}
+            ,#{job2, jdbcType=VARCHAR}
+            ,#{edu, jdbcType=CHAR}
+            ,#{fromRank, jdbcType=CHAR}
+            ,#{toRank, jdbcType=CHAR}
+            ,#{career, jdbcType=VARCHAR}
+            ,#{lang, jdbcType=VARCHAR}
+            ,#{place, jdbcType=VARCHAR}
+            ,#{publicYn, jdbcType=CHAR}
+            ,#{task, jdbcType=VARCHAR}
+            ,#{posCondition, jdbcType=VARCHAR}
+            ,#{fromTarget, jdbcType=VARCHAR}
+            ,#{toTarget, jdbcType=VARCHAR}
+            ,#{tCompany, jdbcType=VARCHAR}
+            ,#{gender, jdbcType=CHAR}
+            ,#{license, jdbcType=VARCHAR}
+            ,#{base, jdbcType=VARCHAR}
+            ,#{bonus, jdbcType=VARCHAR}
+            ,#{etc, jdbcType=VARCHAR}
+            ,NOW()
+            ,NOW()
+        )
+    </insert>
+    
+    <!-- 포지션 수정 -->
+    <update id="modPosition" parameterType="hashmap">
+    	UPDATE I_POSITION
+    	SET
+    		POS_NM = #{posNm, jdbcType=VARCHAR}
+            ,COM_ID = #{comId, jdbcType=VARCHAR}
+            ,COM_NM = #{comNm, jdbcType=VARCHAR}
+            ,RULE = #{rule, jdbcType=VARCHAR}
+            ,H_PUBLIC_YN = #{hPublicYn, jdbcType=CHAR}
+            ,CON_ID = #{conId, jdbcType=VARCHAR}
+            ,CON_NM = (SELECT CON_NM FROM I_CONSULTANT WHERE CON_ID = #{conId, jdbcType=VARCHAR}) 
+            ,S_CON_ID = #{sConId, jdbcType=VARCHAR} 
+            ,POS_STATUS = #{posStatus, jdbcType=VARCHAR}
+            ,JOB1 = #{job1, jdbcType=VARCHAR}
+            ,JOB2 =  #{job2, jdbcType=VARCHAR}
+            ,EDU = #{edu, jdbcType=CHAR}
+            ,FROM_RANK = #{fromRank, jdbcType=CHAR} 
+            ,TO_RANK = #{toRank, jdbcType=CHAR}
+            ,CAREER = #{career, jdbcType=VARCHAR}
+            ,LANG = #{lang, jdbcType=VARCHAR}
+            ,PLACE = #{place, jdbcType=VARCHAR}
+            ,PUBLIC_YN = #{publicYn, jdbcType=CHAR}
+            ,TASK = #{task, jdbcType=VARCHAR}
+            ,POS_CONDITION = #{posCondition, jdbcType=VARCHAR}
+            ,FROM_TARGET = #{fromTarget, jdbcType=VARCHAR}
+            ,TO_TARGET = #{toTarget, jdbcType=VARCHAR}
+            ,T_COMPANY = #{tCompany, jdbcType=VARCHAR}
+            ,GENDER = #{gender, jdbcType=CHAR}
+            ,LICENSE = #{license, jdbcType=VARCHAR}
+            ,BASE = #{base, jdbcType=VARCHAR}
+            ,BONUS = #{bonus, jdbcType=VARCHAR}
+            ,ETC = #{etc, jdbcType=VARCHAR}
+            ,MOD_DATE = NOW() 
+    	WHERE
+    		POS_ID = #{posId, jdbcType=VARCHAR} 
+    </update>
+    
+    <!-- 포지션 삭제 -->
+    <update id="delPosition" parameterType="hashmap">
+        UPDATE I_POSITION
+        SET
+            DEL_DATE = NOW() 
+        WHERE 
+            POS_ID = #{posId, jdbcType=VARCHAR} 
+    </update>
+    
+    <!-- 고객사 팝업 리스트 -->
+    <select id="getCompanyPopList" parameterType="hashmap" resultType="hashmap">
+    	SELECT
+            @ROWNUM := @ROWNUM + 1 AS ROWNUM
+            ,COM_ID
+            ,COM_NM
+            ,(SELECT CD_NM FROM I_JOB_CD WHERE CD_ID = INDUSTRY1) AS INDUSTRY1
+            ,(SELECT CD_NM FROM I_JOB_CD WHERE CD_ID = INDUSTRY2) AS INDUSTRY2
+            ,SUMMARY
+        FROM 
+            I_COMPANY A,
+            (SELECT @ROWNUM := 0) TMP
+		WHERE 
+			DEL_DATE IS NULL
+		<if test='comNm != null and comNm != ""'>
+		    AND COM_NM LIKE CONCAT('%', #{comNm, jdbcType=VARCHAR}, '%')
+		</if>
+		<if test='adminYn == "N"'>
+			<choose>
+				<when test='authCompany == "1"'>
+					AND PUBLIC_YN = 'Y'
+					OR (PUBLIC_YN = 'N' AND USR_ID = #{usrId, jdbcType=VARCHAR})
+					OR (PUBLIC_YN = 'N' AND CON_ID = #{conId, jdbcType=VARCHAR})
+				</when>
+				<otherwise>
+					AND CON_ID = #{conId, jdbcType=VARCHAR}
+				</otherwise>
+			</choose>
+		</if>
+		ORDER BY ROWNUM DESC
+        LIMIT #{startRowNum, javaType=INT}, 5
+    </select>
+    
+    <!-- 고객사 팝업 리스트 총 개수 -->
+    <select id="getCompanyPopTotalCount" parameterType="hashmap" resultType="int">
+    	SELECT
+            COUNT(*)
+        FROM 
+            I_COMPANY A
+		WHERE 
+			DEL_DATE IS NULL
+		<if test='comNm != null and comNm != ""'>
+		    AND COM_NM LIKE CONCAT('%', #{comNm, jdbcType=VARCHAR}, '%')
+		</if>
+		<if test='adminYn == "N"'>
+			<choose>
+				<when test='authCompany == "1"'>
+					AND PUBLIC_YN = 'Y'
+					OR (PUBLIC_YN = 'N' AND USR_ID = #{usrId, jdbcType=VARCHAR})
+					OR (PUBLIC_YN = 'N' AND CON_ID = #{conId, jdbcType=VARCHAR})
+				</when>
+				<otherwise>
+					AND CON_ID = #{conId, jdbcType=VARCHAR}
+				</otherwise>
+			</choose>
+		</if>
+    </select>
+    
+    <!-- 후보자 팝업 리스트 -->
+    <select id="getCandidatePopList" parameterType="hashmap" resultType="hashmap">
+     	SELECT
+            @ROWNUM := @ROWNUM + 1 AS ROWNUM
+            ,U.USR_ID
+            ,USR_NM
+            ,CONCAT(USR_NM, '(', IFNULL(RIGHT(YEAR, 2), ''), ',',
+				CASE GENDER 
+					WHEN 'M' THEN '남'
+					WHEN 'W' THEN '여'
+					ELSE ''
+				END ,')') AS USR_INFO 
+			,SUBSTRING_INDEX(SUBSTRING_INDEX(ACADEMIC_1, ':', 2), ':', -1) AS USR_SCHOOL
+			,SUBSTRING_INDEX(SUBSTRING_INDEX(ACADEMIC_1, ':', 3), ':', -1) AS USR_MAJOR
+			,MOBILE
+        FROM 
+            I_USER U
+            ,(SELECT @ROWNUM := 0) TMP
+		WHERE 
+			DEL_DATE IS NULL
+		<if test='usrNm != null and usrNm != ""'>
+		    AND USR_NM LIKE CONCAT('%', #{usrNm, jdbcType=VARCHAR}, '%')
+		</if>
+		<if test='adminYn == "N"'>
+			<choose>
+				<when test='authUser == "1"'>
+					AND (PUBLIC_YN = 'Y'
+					OR (PUBLIC_YN = 'N' AND U.CON_ID = #{conId, jdbcType=VARCHAR}))
+				</when>
+				<otherwise>
+					AND U.CON_ID = #{conId, jdbcType=VARCHAR}
+				</otherwise>
+			</choose>
+		</if>
+		ORDER BY ROWNUM DESC
+        LIMIT #{startRowNum, javaType=INT}, 5
+    </select>
+    
+	<!-- 후보자 팝업 리스트 총 개수 -->
+    <select id="getCandidatePopTotalCount" parameterType="hashmap" resultType="int">
+    	SELECT 
+        	COUNT(*) 
+        FROM 
+        	I_USER
+        WHERE 
+			DEL_DATE IS NULL
+		<if test='usrNm != null and usrNm != ""'>
+		    AND USR_NM LIKE CONCAT('%', #{usrNm, jdbcType=VARCHAR}, '%')
+		</if>
+		<if test='adminYn == "N"'>
+			<choose>
+				<when test='authUser == "1"'>
+					AND PUBLIC_YN = 'Y'
+					OR (PUBLIC_YN = 'N' AND CON_ID = #{conId, jdbcType=VARCHAR})
+				</when>
+				<otherwise>
+					AND CON_ID = #{conId, jdbcType=VARCHAR}
+				</otherwise>
+			</choose>
+		</if>
+    </select>
+
+	<!-- 포지션별 후보자 진행현황 리스트 -->
+    <select id="getUsrRecPresentList" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			@ROWNUM := @ROWNUM + 1 AS ROWNUM
+			,R.REC_ID
+			,U.USR_NM
+			,IFNULL(CONCAT(U.USR_NM, '(', RIGHT(YEAR, 2), ',',
+				CASE GENDER 
+					WHEN 'M' THEN '남'
+					WHEN 'W' THEN '여'
+				END ,')'), U.USR_NM) AS USR_INFO
+			,DATE_FORMAT(U.REG_DATE, "%Y-%m-%d") AS REG_DATE
+			,R.USR_ID
+			,SUBSTRING_INDEX(SUBSTRING_INDEX(ACADEMIC_1, ':', 2), ':', -1) AS USR_SCHOOL
+			,SUBSTRING_INDEX(SUBSTRING_INDEX(ACADEMIC_1, ':', 3), ':', -1) AS USR_MAJOR
+			,MOBILE
+			,FN_CONSULTENTNAME(R.CON_ID) AS CON_NM
+			,R.CON_ID
+		FROM
+			I_REC_PRESENT R
+			INNER JOIN I_USER U
+				ON(R.USR_ID = U.USR_ID)
+			,(SELECT @ROWNUM := 0) TMP
+		WHERE 
+			R.DEL_DATE IS NULL
+			AND POS_ID = #{posId, jdbcType=VARCHAR}
+		<if test='recId != null and recId != ""'>
+	    	AND R.REC_ID = #{recId, jdbcType=VARCHAR}
+		</if>
+		ORDER BY R.REG_DATE DESC
+    </select>
+    
+    <!-- 포지션별 후보자 진행현황 저장 -->
+	<insert id="addUsrRecPresent" parameterType="hashmap">
+    	<selectKey keyProperty="recId" resultType="string" order="BEFORE">
+            SELECT CONCAT("REC", LPAD(RIGHT(IFNULL(MAX(REC_ID), 0), 8)+1, 8, 0)) FROM I_REC_PRESENT
+        </selectKey>
+        INSERT INTO I_REC_PRESENT
+        (
+            REC_ID
+            ,POS_ID
+            ,USR_ID
+            ,CON_ID
+            ,REG_DATE
+        )
+        VALUES
+        (
+            #{recId, jdbcType=VARCHAR}
+            ,#{posId, jdbcType=VARCHAR}
+            ,#{usrId, jdbcType=VARCHAR}
+            ,#{conId, jdbcType=VARCHAR}
+            ,NOW()
+        )
+	</insert>
+	
+	<!-- 진행현황 삭제 -->
+    <update id="delUsrRecPresent" parameterType="hashmap">
+    	UPDATE I_REC_PRESENT
+    	SET
+    		DEL_DATE = NOW()
+    	<trim prefix="WHERE" prefixOverrides="AND | OR" >
+        	<if test='recId != null and recId != ""'>  
+    			AND REC_ID = #{recId, jdbcType=VARCHAR}
+    		</if>
+    		<if test='posId != null and posId != ""'>  
+    			AND POS_ID = #{posId, jdbcType=VARCHAR}
+    		</if>
+    	</trim>
+    </update>
+    
+    <!-- 진행상태 리스트 -->
+    <select id="getUsrProStatusList" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			STA_ID
+			,REC_ID
+			,CON_ID
+			,STATE
+			,STATE_NM
+			,STATE_DATE
+			,DATE_FORMAT(REG_DATE, "%Y-%m-%d") AS REG_DATE
+			,REG_DATE AS R_DATE
+		FROM
+			I_PRO_STATUS
+		WHERE 
+			DEL_DATE IS NULL
+		<if test='recId != null and recId != ""'>
+	    	AND REC_ID = #{recId, jdbcType=VARCHAR}
+		</if>
+		ORDER BY R_DATE DESC
+    </select>
+    
+    <!-- 진행상태 등록 -->
+    <insert id="addUsrProStatus" parameterType="hashmap">
+    	<selectKey keyProperty="staId" resultType="string" order="BEFORE">
+            SELECT CONCAT("STA", LPAD(RIGHT(IFNULL(MAX(STA_ID), 0), 8)+1, 8, 0)) FROM I_PRO_STATUS
+        </selectKey>
+        INSERT INTO I_PRO_STATUS
+        (
+        	STA_ID
+        	,REC_ID
+        	,CON_ID
+        	,STATE
+        	,STATE_NM
+        	,STATE_DATE
+        	,REG_DATE
+        )
+        VALUES
+        (
+        	#{staId, jdbcType=VARCHAR}
+        	,#{recId, jdbcType=VARCHAR}
+        	,#{conId, jdbcType=VARCHAR}
+        	,#{state, jdbcType=VARCHAR}
+        	,#{stateNm, jdbcType=VARCHAR}
+        	,#{stateDate, jdbcType=VARCHAR}
+        	,NOW()
+        )
+    </insert>
+    
+	<!-- 진행상태 삭제 -->
+    <update id="delUsrProStatus" parameterType="hashmap">
+    	UPDATE I_PRO_STATUS
+    	SET
+    		DEL_DATE = NOW()
+        <trim prefix="WHERE" prefixOverrides="AND | OR" >
+        	<if test='staId != null and staId != ""'>    	
+    			AND STA_ID = #{staId, jdbcType=VARCHAR}
+    		</if>
+    		<if test='recId != null and recId != ""'>
+    			AND REC_ID = #{recId, jdbcType=VARCHAR}
+    		</if>
+    	</trim>
+    </update>
+    
+    <!-- 공개여부 상태값 변경 -->
+    <update id="changePublicYn" parameterType="hashmap">
+    	UPDATE I_POSITION
+    	SET
+    		PUBLIC_YN = #{publicYn, jdbcType=CHAR}
+    	WHERE
+    		POS_ID = #{posId, jdbcType=VARCHAR} 
+    </update>
+    
+</mapper>

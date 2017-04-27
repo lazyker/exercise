@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" > 
+
+<mapper namespace="schedule">
+
+    <!-- 일정 리스트 -->
+    <select id="getScheduleList" parameterType="hashmap" resultType="hashmap">
+    	SELECT
+    		SCH_ID
+    		,SCH_NM
+    		,CONCAT(START_YMD,'T', IFNULL(LEFT(START_TM, 2), '00'), ':', IFNULL(RIGHT(START_TM, 2), '00')) AS START
+			,CONCAT(END_YMD,'T', IFNULL(LEFT(END_TM, 2), '00'), ':', IFNULL(RIGHT(END_TM, 2), '00')) AS END
+    		,START_YMD
+    		,END_YMD
+    		,START_TM
+    		,END_TM
+    		,CON_ID
+    		,FN_CONSULTENTNAME(CON_ID) AS CON_NM
+    		,PLACE
+    		,MEMO
+    		,REG_DATE
+    	FROM
+    		I_SCHEDULE
+    	WHERE
+    		START_YMD &gt;= #{startYmd, jdbcType=VARCHAR} AND END_YMD &lt;= #{endYmd, jdbcType=VARCHAR}
+    		AND DEL_DATE IS NULL
+    </select>
+    
+    <!-- 일정 상세 -->
+    <select id="getSchedule" parameterType="hashmap" resultType="hashmap">
+    	SELECT
+    		SCH_ID
+    		,SCH_NM
+    		,START_YMD
+    		,END_YMD
+    		,START_TM
+    		,END_TM
+    		,A.CON_ID
+    		,FN_CONSULTENTNAME(A.CON_ID) AS CON_NM
+    		,PLACE
+    		,MEMO
+    		,A.REG_DATE
+    		,B.ATT_ID
+			,B.ORIGINAL_FILE_NM
+			,B.STORED_FILE_NM
+			,ROUND(B.FILE_SIZE/1024,1) AS FILE_SIZE
+    	FROM
+    		I_SCHEDULE A
+    		LEFT JOIN I_ATTACH B ON (SCH_ID = ORG_ID AND B.DEL_DATE IS NULL)   	
+    	WHERE
+    		SCH_ID = #{schId, jdbcType=VARCHAR}
+    </select>
+    
+    <!-- 일정 등록 -->
+    <insert id="setSchedule" parameterType="hashmap">
+    	<selectKey keyProperty="schId" resultType="string" order="BEFORE">
+            SELECT CONCAT("SCH", LPAD(RIGHT(IFNULL(MAX(SCH_ID), 0), 8)+1, 8, 0)) FROM I_SCHEDULE
+        </selectKey>
+    	INSERT INTO I_SCHEDULE
+    	(
+    		SCH_ID
+    		,SCH_NM
+    		,START_YMD
+    		,END_YMD
+    		,START_TM
+    		,END_TM
+    		,CON_ID
+    		,PLACE
+    		,MEMO
+    		,PUBLIC_YN
+    		,REG_DATE
+    	)
+    	VALUES
+    	(
+    		#{schId, jdbcType=VARCHAR}
+    		,#{schNm, jdbcType=VARCHAR}
+    		,#{startYmd, jdbcType=VARCHAR}
+    		,#{endYmd, jdbcType=VARCHAR}
+    		,#{startTm, jdbcType=VARCHAR}
+    		,#{endTm, jdbcType=VARCHAR}
+    		,#{conId, jdbcType=VARCHAR}
+    		,#{place, jdbcType=VARCHAR}
+    		,#{memo, jdbcType=VARCHAR}
+    		,#{publicYn, jdbcType=CHAR}
+    		,NOW()
+    	)
+    </insert>
+    
+    <!-- 일정 수정 -->
+    <update id="modSchedule" parameterType="hashmap">
+    	UPDATE I_SCHEDULE
+    	SET
+    		SCH_NM = #{schNm, jdbcType=VARCHAR}
+    		,START_YMD = #{startYmd, jdbcType=VARCHAR}
+    		,END_YMD = #{endYmd, jdbcType=VARCHAR}
+    		,START_TM = #{startTm, jdbcType=VARCHAR}
+    		,END_TM = #{endTm, jdbcType=VARCHAR} 
+    		,PLACE = #{place, jdbcType=VARCHAR}
+    		,MEMO = #{memo, jdbcType=VARCHAR}  
+    	WHERE
+    		SCH_ID = #{schId, jdbcType=VARCHAR}
+    </update>
+    
+    <!-- 일정 삭제 -->
+    <update id="delSchedule" parameterType="hashmap">
+    	UPDATE I_SCHEDULE
+    	SET
+    		DEL_DATE = NOW()
+    	WHERE
+    		SCH_ID = #{schId, jdbcType=VARCHAR} 
+    </update>
+    
+</mapper>

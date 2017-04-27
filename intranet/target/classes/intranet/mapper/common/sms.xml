@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" > 
+
+<mapper namespace="sms">
+
+	<!-- SMS 보내기
+	tran_phone = 받는사람
+	tran_callback = 보내는사람
+	tran_msg = 메세지
+	tran_etc1 = 보내는사람이름 (EX: 관리자)
+	tran_etc2 = 보내는구분 (EX: 전자결재)
+	tran_etc3 = 보내는사람ID (EX : admin)
+	-->
+	<!-- SMS 발송 -->
+	<insert id="smsSend" parameterType="hashmap">
+		INSERT INTO EM_TRAN 
+		(
+			TRAN_PHONE
+			,TRAN_CALLBACK 
+			,TRAN_STATUS
+			,TRAN_DATE
+			,TRAN_MSG
+			,TRAN_ETC1
+			,TRAN_ETC2
+			,TRAN_ETC3
+			,TRAN_ETC4
+			,TRAN_TYPE
+		) 
+		VALUES 
+		(
+			#{toTarget, jdbcType=VARCHAR},
+			#{fromTarget, jdbcType=VARCHAR},
+			'1', 
+			GETDATE(), 
+			#{toMessage, jdbcType=VARCHAR},
+			#{conId, jdbcType=VARCHAR},
+			#{tran_etc2, jdbcType=VARCHAR},
+			#{tran_etc3, jdbcType=VARCHAR},
+			#{mmsSeq, jdbcType=VARCHAR},
+			#{tranType, jdbcType=VARCHAR}
+		)
+	</insert>
+	
+	<!-- SMS의 MMS 메세지 전송 정보 입력 -->
+	<insert id="mmsSend" parameterType="hashmap" useGeneratedKeys="true" keyProperty="mmsSeq">
+		INSERT INTO EM_TRAN_MMS
+		(
+			FILE_CNT, MMS_BODY, MMS_SUBJECT
+		)
+		VALUES (
+			'0', #{toMessage, jdbcType=VARCHAR}, #{title, jdbcType=VARCHAR}
+		)
+	</insert>
+	
+	<!-- SMS History -->
+	<select id="getSmsHistory" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			CONVERT(VARCHAR(20), TRAN_DATE, 120) AS CK_DATE
+			,TRAN_ETC1
+			,TRAN_PHONE
+			,CASE TRAN_RSLT
+				WHEN '0' THEN '성공'
+			ELSE '실패'
+			END TRAN_RSLT
+		FROM
+			${s_key}
+		<trim prefix="WHERE" prefixOverrides="AND | OR" >
+			<if test='adminYn == "N"'>
+				TRAN_ETC1 = #{conId, jdbcType=VARCHAR}
+			</if>
+			<if test='adminYn == "Y"'>
+				TRAN_ETC3 = 'cozel'
+			</if>
+			AND CONVERT(NVARCHAR(10),TRAN_DATE,20) BETWEEN #{sDate, jdbcType=VARCHAR} AND #{eDate, jdbcType=VARCHAR}
+		</trim>
+		UNION ALL
+		SELECT
+			CONVERT(VARCHAR(20), TRAN_DATE, 120) AS CK_DATE
+			,TRAN_ETC1
+			,TRAN_PHONE
+			,CASE TRAN_RSLT
+				WHEN '0' THEN '성공'
+			ELSE '실패'
+			END TRAN_RSLT
+		FROM
+			EM_TRAN
+		<trim prefix="WHERE" prefixOverrides="AND | OR" >
+			<if test='adminYn == "N"'>
+				TRAN_ETC1 = #{conId, jdbcType=VARCHAR}
+			</if>
+			<if test='adminYn == "Y"'>
+				TRAN_ETC3 = 'cozel'
+			</if>
+			AND CONVERT(NVARCHAR(10),TRAN_DATE,20) BETWEEN #{sDate, jdbcType=VARCHAR} AND #{eDate, jdbcType=VARCHAR}
+		</trim>
+		ORDER BY CK_DATE DESC
+	</select>
+</mapper>

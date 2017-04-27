@@ -1,0 +1,303 @@
+/*---------------------------------------------
+	페이지 레이아웃 관련
+---------------------------------------------*/
+body {background-image:url(../images/bg.png); background-position:top left; background-repeat:repeat-y;}
+
+/*---------------------------------------------
+	상단
+---------------------------------------------*/
+#wrapper {margin:0 auto; width:100%; height:58px; min-width:1000px; overflow:hidden; background-color:#37394e;}
+.logo { width:200px; float:left; text-align:center;}
+.logo a{background: url('../images/logo.png') no-repeat 27px 16px; width:120px; height:37px; display:block; color:#8387a5; font-size:14px; padding-left:80px; padding-top:20px;}
+.menu { padding-left:40px; overflow:hidden; float:left;}
+/* .menu li{float:left; margin:0 20px;} */
+/* .menu li a{ display:block; font-weight:600; color:#787b8f; font-size:14px; padding:24px 0 16px; width:76px; text-align:center;} */
+/* .menu li a:hover {color:#fff; font-weight:600; border-bottom:8px solid #545ba5;} */
+/* .menu .ton {font-size:14px; padding:24px 0 16px; color:#fff; font-weight:600; border-bottom:8px solid #545ba5;} */
+
+ul.menu li{float:left; margin:0 0px; height: 58px;}
+ul.menu li a{display:block; font-weight:600; color:#787b8f; font-size:14px; padding:19px 0 20px; width:150px; text-align:center;}
+ul.menu li a:hover {color:#fff !important; font-weight:600; background-color: #333}
+ul.menu .ton {font-size:14px; font-weight:600; background-color: #333; width:150px; text-align:center;}
+.ton > a{color:#fff !important;}
+ul.menu .sub {display:none}
+ul.menu li ul.sub{background-color: #37394e; position: absolute; width: 150px; z-index: 999;}
+ul.menu li ul.sub li{float:left; margin : 0; font-weight:600; color:#787b8f; font-size:14px; width: 100%; height: 100%;}
+ul.menu:after{height: 0; visibility: hidden; content: "."; display: block; clear: both;}
+
+/* .menu_s {overflow:hidden;}  */
+/* .menu_s li { margin:0;}  */
+/* .menu_s li a{ display:block; font-weight:600; color:#787b8f; font-size:13px; border-bottom:1px solid #545ba5; padding:12px 20px; width:76px; text-align:center; background:#FFF;}  */
+/* .menu_s li a:hover {color:#545ba5; font-weight:600; background:#eaebf5;}  */
+
+.g_h { float:right; margin-right:30px; margin-top:20px; text-indent:-9999px;}
+.g_h a{background: url('../images/home.png') no-repeat; display:block; width:27px; height:27px;}
+.g_h a:hover{background: url('../images/home_on.png') no-repeat;}
+
+/*---------------------------------------------
+	좌측
+---------------------------------------------*/
+#inb {overflow:hidden; position:absolute; top:68px; left:0px; bottom:0px; width:200px; border-right:1px solid #dddddd; background-color:#43455a;}
+.name_m {width:189px; height:40px; border-bottom:1px solid #595b71; padding:20px 0 20px 10px; overflow:hidden;}
+.name {font-size:14px; color:#7f839a;}
+.name em{color:#bdc0d1; font-weight:600;}
+.n_time {font-size:13px; color:#7f839a; line-height:23px;}
+.out {float:right; text-indent:-9999px; margin-right:13px; margin-top:7px;}
+.out a{background: url('../images/logout.png') no-repeat; display:block; width:27px; height:27px;}
+.out a:hover{background: url('../images/logout_on.png') no-repeat;}
+.s_m{overflow:hidden; margin-top:20px;}
+.s_m li {text-align:right; font-size:14px;}
+
+.s_m .list_s a{display:block; background: url('../images/menu01.png') no-repeat 165px 14px; font-weight:600; color:#787b8f; font-size:14px; padding:14px 48px 14px 0;}
+.s_m .list_s a:hover{background: url('../images/menu01_on.png') no-repeat 165px 14px; color:#ffffff;}
+.s_m .list_s_on{background: url('../images/menu01_on.png') no-repeat 165px 14px; color:#ffffff; font-size:14px; padding:14px 48px 14px 0;}
+.s_m .list_s_on a{background: url('../images/menu01_on.png') no-repeat 165px 14px; color:#ffffff;}
+
+.s_m .en_s a {display:block; background: url('../images/menu02.png') no-repeat 165px 14px; font-weight:600; color:#787b8f; font-size:14px; padding:14px 48px 14px 0;}
+.s_m .en_s a:hover{background: url('../images/menu02_on.png') no-repeat 165px 14px; color:#ffffff;}
+.s_m .en_s_on{background: url('../images/menu02_on.png') no-repeat 165px 14px; color:#ffffff; font-size:14px; padding:14px 48px 14px 0;}
+.s_m .en_s_on a{background: url('../images/menu02_on.png') no-repeat 165px 14px; color:#ffffff;}
+
+.s_m .rec_s a{display:block; background: url('../images/menu03.png') no-repeat 165px 14px; font-weight:600; color:#787b8f; font-size:14px; padding:14px 48px 14px 0;}
+.s_m .rec_s a:hover{background: url('../images/menu03_on.png') no-repeat 165px 14px; color:#ffffff;}
+.s_m .rec_s_on{background: url('../images/menu03_on.png') no-repeat 165px 14px; color:#ffffff; font-size:14px; padding:14px 48px 14px 0;}
+.s_m .rec_s_on a{background: url('../images/menu03_on.png') no-repeat 165px 14px; color:#ffffff;}
+
+.s_m .stats a{display:block; background: url('../images/menu04.png') no-repeat 165px 14px; font-weight:600; color:#787b8f; font-size:14px; padding:14px 48px 14px 0;}
+.s_m .stats a:hover{background: url('../images/menu04_on.png') no-repeat 165px 14px; color:#ffffff;}
+.s_m .stats_on{background: url('../images/menu04_on.png') no-repeat 165px 14px; color:#ffffff; font-size:14px; padding:14px 48px 14px 0;}
+.s_m .stats_on a{background: url('../images/menu04_on.png') no-repeat 165px 14px; color:#ffffff;}
+
+
+/*---------------------------------------------
+	컨텐츠영역
+---------------------------------------------*/
+#Contents {overflow: hidden; margin-left:200px;}
+.swrap{ margin-left:16px; width:97%; overflow:hidden;}
+
+.search { width:100%; background-color:#fff; padding:10px 0px 10px 14px;}
+.b_search { width:97%; text-align:right; padding:16px 0; overflow:hidden;}
+.b_search2{ width:360px; float:right;}
+.b_search3{ float:right;}
+.de_t2 {width:52px; margin-left:7px; color:#616161; font-size:13px; font-weight:600; padding-top:3px;}
+
+.search2 { width:100%; padding:20px 0 10px 0px; overflow:hidden; text-align:right;}
+
+/*상세검색*/
+.de_search {width:97%; overflow:hidden; border-top:1px solid #e1e1e1; padding:16px 10px;}
+.de_s01 {float:left; margin-right:16px;}
+.de_s01 li {padding:5px 0; height:22px;}
+.de_s01 li .de_t{width:52px; margin-right:7px; color:#616161; font-size:13px; font-weight:600; float:left; padding-top:3px;}
+
+/*상세검색버튼*/
+.b_det_s {float:right;}
+.b_det_s a{ display:block; background:#ca819f; text-align:center; padding-top:50px;color:#fff; font-weight:600; font-size:14px; border-radius:2px;height:70px; width:80px;}
+/* .b_det_s a{ display:block; background:#ca819f; text-align:center; padding-top:37px;color:#fff; font-weight:600; font-size:14px; border-radius:2px;height:60px; width:70px;} */
+.b_det_s a:hover {background:#f078aa;}
+
+
+/*작은타이틀*/
+.swrap .s_title {font-size:20px; color:#43455a; font-weight:600; margin-top:10px; margin-bottom:10px; float:left;}
+
+/*코멘트*/
+.swrap .com_bg { background-color:#fff; padding:15px; margin-bottom:20px;}
+.c_g { border-bottom:1px solid #dddddd; padding:10px 0; overflow:hidden;}
+.c_name { float:left; color:#5b5bbe; font-weight:600; font-size:13px;}
+.c_date { float:left; color:#999999; font-weight:normal; font-size:12px;}
+.c_bu {float:right; overflow:hidden; margin-right:10px; width:50px;}
+.c_modi {float:left;}
+.c_modi a{background: url('../images/com_m.png') no-repeat; display:block; width:20px; height:17px; float:left;}
+.c_modi a:hover {background: url('../images/com_m_on.png') no-repeat;}
+.c_modi_y{background: url('') no-repeat !important; display:block; width:20px; height:17px; float:left; text-decoration: underline;}
+.c_del {float:right; margin-top:3px;}
+.c_del a{background: url('../images/com_del.png') no-repeat; display:block; width:17px; height:17px; float:left;}
+.c_del a:hover {background: url('../images/com_del_on.png') no-repeat;}
+.com_in{ padding:10px 0; color:#555555; font-weight:normal; font-size:12px; line-height:18px;}
+
+
+/*---------------------------------------------
+	버튼
+---------------------------------------------*/
+
+/*돋보기버튼*/
+.search_icon { display:block; text-indent:-9999px;  float:left;}
+.search_icon a{display:block; text-indent:-9999px; background:#999baa url('../images/search.png') no-repeat 8px 6px; width:19px; height:14px; padding:6px; border-radius:2px;}
+.search_icon a:hover {background:#9a9fcb url('../images/search.png') no-repeat 8px 6px;}
+
+/*기본버튼*/
+.d_search a{background:#999baa; padding:5px 15px 6px; color:#fff; font-weight:600; font-size:12px; border-radius:2px;}
+.d_search a:hover {background:#9a9fcb;}
+.d_search button{background:#999baa; padding:5px 15px 6px; color:#fff; font-weight:600; font-size:12px; border-radius:2px; border:0}
+.d_search button:hover {background:#9a9fcb; cursor: pointer;}
+
+
+/*포인트버튼*/
+.p_search a{ background:#7a79b1; padding:5px 15px 6px; color:#fff; font-weight:600; font-size:12px; border-radius:2px;}
+.p_search a:hover {background:#7f7dea;}
+
+/*테이블-회색버튼*/
+.t_search a{ background:#b2b2b2; padding:3px 8px 6px; color:#fff; font-weight:600; font-size:11px; border-radius:2px;}
+.t_search a:hover {background:#7e7e7e;}
+
+/*테이블-포인트버튼*/
+.t_p a{ background:#ca819f; padding:3px 8px 6px; color:#fff; font-weight:600; font-size:11px; border-radius:2px;}
+.t_p a:hover {background:#e871a2;}
+
+
+/*코멘트버튼*/
+.b_c_s {float:right;}
+.b_c_s a{ display:block; background:#999baa; text-align:center; color:#fff; font-weight:600; font-size:15px; border-radius:2px; padding-top:12px; height:35px; width:100px;}
+.b_c_s a:hover {background:#9a9fcb;}
+
+
+
+/*---------------------------------------------
+	게시판-테이블
+---------------------------------------------*/
+/* board_list */
+.board_list {border-collapse:collapse; margin:20px auto; font-size:12px; }
+.board_list th {padding:7px 0 8px 0; color:#ffffff; font-weight:600; background-color:#a1a1c4; border-top:1px solid #999999; border-bottom:1px solid #dadada; border-right:1px solid #999999; font-size:13px;}
+.board_list td {padding:10px 0; text-align:center; color:#222; border-bottom:1px solid #e3e3e3; border-right:1px solid #e3e3e3; background-color:#fff;}
+.board_list td p{padding-left:12px; text-align:left;}
+.board_list > tbody > tr:hover td{background-color:#f5f5f5;}
+
+/* board_list */
+.board_h {border-collapse:collapse; margin:10px auto; font-size:12px; }
+.board_h th {padding:7px 0 8px 20px; color:#ffffff; font-weight:600; background-color:#a1a1c4; border-top:1px solid #999999; border-bottom:1px solid #dadada; font-size:13px; text-align:left; vertical-align:middle;}
+.board_h .re{background: url('../images/ne.png') no-repeat 4% 48%; color:#ffffff; font-weight:600; background-color:#a1a1c4; border-top:1px solid #999999; border-bottom:1px solid #dadada; font-size:13px;}
+.board_h td {padding:10px; text-align:left; color:#222; border-bottom:1px solid #e3e3e3; background-color:#fff;}
+
+.paging {text-align:center; overflow:hidden; margin-bottom: 20px;}
+.paging li {display:inline-table; margin-right:-3px; width:36px; height:36px; font-size:14px; background-color:#fff;}
+.paging li.last {margin-right:0;}
+.paging li a {display:table-cell; width:100%; height:100%; font-size:0.8em; color:#9397c6; vertical-align:middle; border:1px solid #ccc; background-color:#fff;}
+.paging li a:hover, #jobList .paging li a:active {font-weight:bold; color:#fff; background-color:#9397c6; border:1px solid #888bb8;}
+.paging .p_on{font-weight:bold; color:#fff; background-color:#9397c6; border:1px solid #888bb8;}
+
+/*트리메뉴테이블*/
+.t_table {width:80%; height:500px; border:1px solid #bfd3e1;}
+.t_table tr {border-bottom: 1px solid #bfd3e1;}
+.t_table th {padding:7px 5px; color:#1b7dc2; font-size:14px; background-color:#f0f5f9; text-align:center;  border:1px solid #bfd3e1; font-weight:600; height:24px; vertical-align: middle;}
+.t_table td {padding:7px 5px; color:#555; font-size:12px; border:1px solid #bfd3e1; text-align:left; vertical-align:top;}
+
+/*트리메뉴테이블-직원*/
+.m_table {width:100%; height:500px; border:1px solid #ccc;}
+.m_table tr {border-bottom: 1px solid #ccc;}
+.m_table th {padding:7px 5px; color:#fff; font-size:14px; background-color:#9999c6; text-align:center;  border:1px solid #ccc; font-weight:600; height:24px; vertical-align: middle;}
+.m_table td {padding:0px; color:#555; font-size:12px; background-color:#ffffff; border:1px solid #ccc; text-align:left; vertical-align:top;}
+.m_table .td_search {padding:7px 5px; background-color:#eeeeee; text-align:center; height:24px; vertical-align: middle;}
+
+/*트리메뉴테이블-운영자*/
+.s_table {width:100%; height:500px; border:1px solid #ddd3c7;}
+.s_table tr {border-bottom: 1px solid #ddd3c7;}
+.s_table th {padding:7px 5px; color:#ffffff; font-size:14px; background-color:#b997be; text-align:center;  border:1px solid #ddd3c7; font-weight:600; height:24px; vertical-align: middle;}
+.s_table td {padding:0px; color:#555; font-size:12px; background-color:#ffffff; border:1px solid #ddd3c7; text-align:left; vertical-align:top;}
+.s_table .td_search {padding:7px 5px; background-color:#eeeeee; text-align:center; height:24px; vertical-align: middle;}
+
+/*탭2*/
+.tab2 {margin-top:20px; overflow:hidden; width:100%; background:url("../images/tab_bg.jpg") repeat-x 8px 26px; height:27px;}
+.tab2 li { color:#000; font-size:12px; text-align:left; float:left; overflow:hidden; margin-right:1px; height:14px;}
+.tab2 .tab01_on{border:2px solid #1a8dde; border-bottom:0; height:26px;}
+.tab2 .tab01_on a { display:block; color:#1a8dde; font-weight:600; padding:3px 14px 7px 14px; height:26px; background-color:#fff;}
+.tab2 .tab01 {border:2px solid #ddd; border-bottom:0; height:26px;}
+.tab2 .tab01 a { display:block; color:#888; padding:3px 14px 7px 14px; height:26px;}
+
+body.dragging, body.dragging * {cursor: move !important;}
+
+
+/*---------------------------------------------
+	CUSTOM CSS
+---------------------------------------------*/
+.tdHover:hover {background:#d0cfe8 !important; cursor : pointer;}
+
+/* drag */
+.dragged {position: absolute; opacity: 0.5; z-index: 2000; border-bottom : 0px !important;}
+ul.drag li.placeholder {position: relative !important;}
+ul.drag li.placeholder:before {position: absolute; content: ""; width: 0; height: 0; margin-top: -5px; left: -5px; top: -4px; border: 5px solid transparent; border-left-color: red; border-right: none;}
+.liCode {padding:8px 5px; font-size:13px; border-bottom:1px dotted #555555;}
+.liCode:hover{background-color: #f5f5f5;}
+.liCode.selected{background-color: #b0bed9;}
+
+.filebox input[type="file"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip:rect(0,0,0,0);
+  border: 0;
+}
+
+.filebox label {
+  display: inline-block;
+  padding: .5em .75em;
+  color: #fff;
+  font-size: inherit;
+  line-height: normal;
+  vertical-align: middle;
+  background-color: #b2b2b2;
+  cursor: pointer;
+  border: 1px solid #ebebeb;
+  border-bottom-color: #e2e2e2;
+  border-radius: .25em;
+  font-weight: 600;
+}
+
+/* named upload */
+.filebox .upload-name {
+  width: 200px;
+  word-break: break-all;
+  display: inline-block;
+  padding: .5em .75em;  /* label의 패딩값과 일치 */
+  font-size: inherit;
+  font-family: inherit;
+  line-height: normal;
+  vertical-align: middle;
+  background-color: #f5f5f5;
+  border: 1px solid #ebebeb;
+  border-bottom-color: #e2e2e2;
+  border-radius: .25em;
+  -webkit-appearance: none; /* 네이티브 외형 감추기 */
+  -moz-appearance: none;
+  appearance: none;
+}
+
+label.error {
+        width: auto;
+        display: block;
+        color: red;
+        margin-top: 4px;
+}
+
+.d_btn a{
+    display: inline-block;
+  padding: .5em .75em;
+  color: #fff;
+  font-size: inherit;
+  line-height: normal;
+  vertical-align: middle;
+  background-color: #b2b2b2;
+  cursor: pointer;
+  border: 1px solid #ebebeb;
+  border-bottom-color: #e2e2e2;
+  border-radius: .25em;
+  font-weight: 600;
+}
+.d_btn a:hover {background:#9a9fcb;}
+
+.ui-datepicker{ font-size: 12px; width: 200px; }
+.ui-datepicker select.ui-datepicker-month{ width:40% !important; font-size: 11px; }
+.ui-datepicker select.ui-datepicker-year{ width:40% !important; font-size: 11px; }
+input:-ms-input-placeholder { color: #c3c3c3; font-size: 12px;}
+
+.divState {border-bottom: 1px dotted #cccccc; padding-bottom: 3px; width: 180px; margin : 5px auto; text-align: left;}
+.spanStateDate {display: inline-block; width: 70px; color: #ef6fa3;}
+.delState {float: right; cursor: pointer;}
+.font14 {font-size : 14px;}
+.select a:hover {cursor: pointer; text-decoration: underline;}
+.select2 a:hover {cursor: pointer; text-decoration: underline;}
+.select3 a:hover {cursor: pointer;text-decoration: underline;}
+
+.left {text-align: left !important; padding-left: 2px !important;}
+.board_h td p {line-height : 2;}

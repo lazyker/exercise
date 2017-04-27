@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" > 
+
+<mapper namespace="board">
+
+    <!-- 게시판 리스트  -->
+    <select id="getBoardList" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			@ROWNUM := @ROWNUM + 1 AS ROWNUM
+			,BOD_ID
+			,BOD_TYPE
+			,TITLE
+			,FN_CONSULTENTNAME(A.CON_ID) AS CON_NM
+			,CASE 
+				WHEN B.ATT_ID IS NULL THEN '0' 
+				WHEN B.ATT_ID IS NOT NULL THEN '1' 
+			END AS ATT_CNT
+			,DATE_FORMAT(A.REG_DATE, "%Y-%m-%d") AS REG_DATE
+		FROM
+			I_BOARD A
+			LEFT JOIN I_ATTACH B
+				ON (BOD_ID = ORG_ID AND B.DEL_DATE IS NULL)
+			,(SELECT @ROWNUM := 0) TMP
+		WHERE
+			A.DEL_DATE IS NULL
+			AND BOD_TYPE = #{bodType, jdbcType=CHAR}
+		<if test='searchText != null and searchText != ""'>
+		    AND (TITLE LIKE CONCAT('%', #{searchText, jdbcType=VARCHAR}, '%') 
+		    OR CONTENTS LIKE CONCAT('%', #{searchText, jdbcType=VARCHAR}, '%'))
+		</if>
+        ORDER BY A.REG_DATE DESC
+        LIMIT #{startRowNum, javaType=INT}, 15
+    </select>
+    
+    <!-- 게시판 리스트 총 개수 -->
+    <select id="getBoardTotalCount" parameterType="hashmap" resultType="int">
+        SELECT 
+        	COUNT(*) 
+        FROM 
+        	I_BOARD
+        WHERE 
+			DEL_DATE IS NULL
+			AND BOD_TYPE = #{bodType, jdbcType=CHAR}
+		<if test='searchText != null and searchText != ""'>
+		    AND (TITLE LIKE CONCAT('%', #{searchText, jdbcType=VARCHAR}, '%') 
+		    OR CONTENTS LIKE CONCAT('%', #{searchText, jdbcType=VARCHAR}, '%'))
+		</if>
+    </select>
+    
+    <!-- 게시판 상세  -->
+    <select id="getBoard" parameterType="hashmap" resultType="hashmap">
+        SELECT
+            BOD_ID
+            ,BOD_TYPE
+            ,TITLE
+            ,CONTENTS
+            ,A.CON_ID
+            ,B.ATT_ID
+            ,B.ORIGINAL_FILE_NM
+            ,B.STORED_FILE_NM
+            ,ROUND(B.FILE_SIZE/1024,1) AS FILE_SIZE
+            ,B.FILE_TYPE
+        FROM 
+            I_BOARD A
+            LEFT JOIN I_ATTACH B
+            	ON (BOD_ID = ORG_ID AND B.DEL_DATE IS NULL)
+        WHERE 
+            BOD_ID = #{bodId, jdbcType=VARCHAR}
+    </select>
+
+    <!-- 게시판 등록 -->
+    <insert id="setBoard" parameterType="hashmap">
+        <selectKey keyProperty="bodId" resultType="string" order="BEFORE">
+            SELECT CONCAT("BOD", LPAD(RIGHT(IFNULL(MAX(BOD_ID), 0), 8)+1, 8, 0)) FROM I_BOARD
+        </selectKey>
+        INSERT INTO I_BOARD
+        (
+            BOD_ID
+            ,BOD_TYPE
+            ,TITLE
+            ,CONTENTS
+            ,CON_ID
+            ,REG_DATE
+        )
+        VALUES
+        (
+            #{bodId, jdbcType=VARCHAR}
+            ,#{bodType, jdbcType=VARCHAR}
+            ,#{title, jdbcType=VARCHAR}
+            ,#{contents, jdbcType=VARCHAR}
+            ,#{conId, jdbcType=VARCHAR}
+            ,NOW()
+        )
+    </insert>
+    
+    <!-- 게시판 수정 -->
+    <update id="modBoard" parameterType="hashmap">
+    	UPDATE I_BOARD
+    	SET
+            TITLE = #{title, jdbcType=VARCHAR}
+            ,CONTENTS = #{contents, jdbcType=VARCHAR}
+    	WHERE
+    		BOD_ID = #{bodId, jdbcType=VARCHAR} 
+    </update>
+    
+    <!-- 게시판 게시글 삭제 -->
+    <update id="delBoard" parameterType="hashmap">
+        UPDATE I_BOARD
+        SET
+            DEL_DATE = NOW() 
+        WHERE 
+            BOD_ID = #{bodId, jdbcType=VARCHAR} 
+    </update>
+    
+</mapper>

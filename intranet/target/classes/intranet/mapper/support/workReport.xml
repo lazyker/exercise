@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" > 
+
+<mapper namespace="workReport">
+
+    <!-- 업무현황 리포트 리스트 -->
+    <select id="getWorkReportList" parameterType="hashmap" resultType="hashmap">
+    	SELECT Z.*
+    	FROM (
+					SELECT
+						@ROWNUM := @ROWNUM + 1 AS ROWNUM
+						,P.COM_NM
+						,P.POS_NM
+						,U.USR_NM
+						,DATE_FORMAT(S.STATE_DATE, "%Y-%m-%d") AS REG_DATE
+						,S.STATE_NM
+						,R.CON_ID
+					FROM
+						I_REC_PRESENT R
+						LEFT OUTER JOIN I_POSITION P
+							ON (R.POS_ID = P.POS_ID)
+						LEFT OUTER JOIN I_USER U
+							ON (R.USR_ID = U.USR_ID)
+						INNER JOIN (
+											SELECT A.*
+											FROM I_PRO_STATUS A
+											JOIN (
+														SELECT REC_ID, MAX(STA_ID) AS STA_ID
+														FROM I_PRO_STATUS
+														GROUP BY REC_ID
+													) B ON A.STA_ID = B.STA_ID AND A.REC_ID = B.REC_ID
+										) S
+							ON (R.REC_ID = S.REC_ID)
+						,(SELECT @ROWNUM := 0) TMP
+					WHERE
+						R.DEL_DATE IS NULL
+						AND S.DEL_DATE IS NULL
+						AND S.STATE NOT IN ('I', 'J', 'K', 'L', 'M', 'N')
+						AND (R.CON_ID = #{conId, jdbcType=VARCHAR} OR P.CON_ID = #{conId, jdbcType=VARCHAR})
+					ORDER BY S.STATE_DATE, ROWNUM DESC
+			        LIMIT #{startRowNum, javaType=INT}, 15
+		) Z
+		ORDER BY ROWNUM DESC
+    </select>
+    
+    <!-- 업무현황 리포트 총 개수 -->
+    <select id="getWorkReportTotalCount" parameterType="hashmap" resultType="int">
+		SELECT
+			COUNT(*)
+		FROM
+			I_REC_PRESENT R
+			LEFT OUTER JOIN I_POSITION P
+				ON (R.POS_ID = P.POS_ID)
+			LEFT OUTER JOIN I_USER U
+				ON (R.USR_ID = U.USR_ID)
+			INNER JOIN I_PRO_STATUS S
+				ON (R.REC_ID = S.REC_ID)
+		WHERE
+			R.DEL_DATE IS NULL
+			AND S.DEL_DATE IS NULL
+			AND S.STATE NOT IN ('I', 'J', 'K', 'L', 'M', 'N')
+			AND R.CON_ID = #{conId, jdbcType=VARCHAR}
+    </select>
+    
+</mapper>

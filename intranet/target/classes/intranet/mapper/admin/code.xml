@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" > 
+
+<mapper namespace="code">
+
+    <!-- 업직종 1단계 리스트  -->
+    <select id="getCodeList" parameterType="hashmap" resultType="hashmap">
+        SELECT
+            CD_ID
+            ,CD_TYPE
+            ,CD_LEVEL
+            ,PARENT_ID
+            ,CD_NM
+            ,CD_ORDER
+        FROM 
+            I_JOB_CD
+        WHERE 
+           CD_TYPE = #{cdType, jdbcType=CHAR}
+           AND CD_LEVEL = '1'
+        ORDER BY CD_ORDER
+    </select>
+    
+    <!-- 업직종 2단계 리스트  -->
+    <select id="getCodeList2" parameterType="hashmap" resultType="hashmap">
+        SELECT
+            CD_ID
+            ,CD_TYPE
+            ,CD_LEVEL
+            ,PARENT_ID
+            ,CD_NM
+            ,CD_ORDER
+        FROM 
+            I_JOB_CD
+        WHERE 
+           PARENT_ID = #{parentId, jdbcType=VARCHAR}
+           AND CD_LEVEL = '2'
+        ORDER BY CD_ORDER
+    </select>
+    
+    <!-- 업직종 코드 추가 -->
+    <insert id="setCode" parameterType="hashmap">
+	    <selectKey keyProperty="cdId" resultType="string" order="BEFORE">
+	        SELECT CONCAT("CD", LPAD(RIGHT(IFNULL(MAX(CD_ID), 0), 9)+1, 9, 0)) FROM I_JOB_CD
+	    </selectKey>
+        INSERT INTO I_JOB_CD
+        (
+            CD_ID
+            ,CD_TYPE
+            ,CD_LEVEL
+            ,PARENT_ID
+            ,CD_NM
+            ,CD_ORDER
+            ,REG_DATE
+        )
+        VALUES
+        (
+            #{cdId, jdbcType=VARCHAR}
+            ,#{cdType, jdbcType=CHAR}
+            ,#{cdLevel, jdbcType=CHAR}
+            ,#{parentId, jdbcType=VARCHAR}
+            ,#{cdNm, jdbcType=VARCHAR}
+            ,(	SELECT IFNULL(MAX(CD_ORDER), 0)+1 
+            	FROM I_JOB_CD AS A 
+            	WHERE CD_TYPE = #{cdType, jdbcType=CHAR} 
+            		AND CD_LEVEL = #{cdLevel, jdbcType=CHAR}
+            		<if test='cdLevel == "2"'>
+            			AND PARENT_ID = #{parentId, jdbcType=VARCHAR}
+            		</if>
+            )
+            ,NOW()
+        )
+    </insert>
+    
+    <!-- 업직종 순서 변경 -->
+    <update id="dragCode" parameterType="hashmap">
+        UPDATE I_JOB_CD
+        SET
+            CD_ORDER = #{cdOrder, jdbcType=VARCHAR}
+        WHERE 
+            CD_ID = #{cdId, jdbcType=VARCHAR}
+    </update>
+    
+    <!-- 업직종 코드 삭제 -->
+    <delete id="delCode" parameterType="hashmap">
+        DELETE FROM I_JOB_CD WHERE CD_ID = #{cdId, jdbcType=VARCHAR} 
+    </delete>
+    
+</mapper>

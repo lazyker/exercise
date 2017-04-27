@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" > 
+
+<mapper namespace="test">
+
+	<!-- 오늘 날짜를 가지고 온다  -->
+	<select id="getToday" resultType="string">
+		select now()
+	</select>
+	
+<!-- 	<select id="getEmpInfo" parameterType="hashmap" resultType="string" statementType="CALLABLE"> -->
+<!-- 		{ call getEmp(#{acctID}) }  -->
+<!-- 	</select> -->
+   
+<!-- 	<select id="getEmpInfoMap" parameterType="zeniware.sample.vo.Employee" resultType="zeniware.sample.vo.Employee" statementType="CALLABLE"> -->
+<!-- 		{ call getEmp(#{id, javaType=INT, jdbcType=NUMERIC}) }  -->
+<!-- 	</select> -->
+
+<!-- 	<resultMap type="zeniware.sample.vo.Employee" id="get"> -->
+<!-- 		<id property="first_name" column="first_name"/> -->
+<!-- 	</resultMap> -->
+<!-- 	<select id="getEmpInfoMap" statementType="CALLABLE" resultMap="get"> -->
+<!-- 		{ call getEmp(#{id, javaType=INT, jdbcType=NUMERIC}) } -->
+<!-- 	</select> -->
+
+	<insert id="insertFile" parameterType="hashmap">
+	    <![CDATA[
+	        INSERT INTO TB_FILE
+	        (
+	            BOARD_IDX,
+	            ORIGINAL_FILE_NAME,
+	            STORED_FILE_NAME,
+	            FILE_SIZE,
+	            CREA_ID,
+	            SORT
+	        )
+	        VALUES
+	        (
+	            #{BOARD_IDX},
+	            #{ORIGINAL_FILE_NAME},
+	            #{STORED_FILE_NAME},
+	            #{FILE_SIZE},
+	            'Admin',
+	            #{SORT}
+	        )
+	    ]]>
+	</insert>
+	
+	
+	   <insert id="tx1Save" parameterType="hashmap">  
+        INSERT INTO tx1 ( id, subject )  
+        VALUES ( #{id}, #{subject} )  
+    </insert>  
+      
+    <insert id="tx2Save" parameterType="hashmap">  
+        INSERT INTO tx2 ( name, title )  
+        VALUES ( #{name}, #{title} )  
+    </insert> 
+
+</mapper>

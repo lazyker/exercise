@@ -1,0 +1,621 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" > 
+
+<mapper namespace="candidate">
+
+    <!-- 후보자 리스트  -->
+    <select id="getCandidateList" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			@ROWNUM := @ROWNUM + 1 AS ROWNUM
+			,U.USR_ID 
+			,USR_NM
+			,CONCAT(USR_NM, ' (', IFNULL(RIGHT(YEAR, 2), ''), ',',
+				CASE GENDER 
+					WHEN 'M' THEN '남'
+					WHEN 'W' THEN '여'
+					ELSE ''
+				END ,')') AS USR_INFO
+			,SUBSTRING_INDEX(SUBSTRING_INDEX(ACADEMIC_1, ':', 2), ':', -1) AS USR_SCHOOL
+			,SUBSTRING_INDEX(SUBSTRING_INDEX(ACADEMIC_1, ':', 3), ':', -1) AS USR_MAJOR
+			,ACADEMIC_1
+			,JOB1_NM
+			,JOB2_NM
+			,C_NAME
+			,U.CON_NM
+			,U.CON_ID
+		FROM
+			I_USER U
+			,(SELECT @ROWNUM := 0) TMP        
+		WHERE 
+			U.DEL_DATE IS NULL
+		<if test='searchText != null and searchText != ""'>
+		    AND (USR_NM LIKE CONCAT('%', #{searchText, jdbcType=VARCHAR}, '%') 
+		    OR (ACADEMIC_1 LIKE CONCAT('%', #{searchText, jdbcType=VARCHAR}, '%')
+		    	OR ACADEMIC_2 LIKE CONCAT('%', #{searchText, jdbcType=VARCHAR}, '%')
+		    	OR ACADEMIC_3 LIKE CONCAT('%', #{searchText, jdbcType=VARCHAR}, '%')
+		    	OR ACADEMIC_4 LIKE CONCAT('%', #{searchText, jdbcType=VARCHAR}, '%')
+		    	 )
+		    OR C_NAME LIKE CONCAT('%', #{searchText, jdbcType=VARCHAR}, '%')
+		    OR JOB1_NM LIKE CONCAT('%', #{searchText, jdbcType=VARCHAR}, '%')
+		    OR JOB2_NM LIKE CONCAT('%', #{searchText, jdbcType=VARCHAR}, '%'))
+		</if>
+		<if test='usrNm != null and usrNm != ""'>
+			AND USR_NM LIKE CONCAT('%', #{usrNm, jdbcType=VARCHAR}, '%')
+		</if>
+		<if test='gender != null and gender != ""'>
+			AND GENDER = #{gender, jdbcType=VARCHAR}
+		</if>
+		<if test='industry1 != null and industry1 != ""'>
+		    AND INDUSTRY1 = #{industry1, jdbcType=VARCHAR}
+		</if>
+		<if test='industry2 != null and industry2 != ""'>
+		    AND INDUSTRY2 = #{industry2, jdbcType=VARCHAR} 
+		</if>
+		<if test='job1 != null and job1 != ""'>
+		    AND JOB1 = #{job1, jdbcType=VARCHAR}
+		</if>
+		<if test='job2 != null and job2 != ""'>
+		    AND JOB2 = #{job2, jdbcType=VARCHAR} 
+		</if>
+		<if test='usrSchool != null and usrSchool != ""'>
+		    AND ACADEMIC_1 LIKE CONCAT('%', #{usrSchool, jdbcType=VARCHAR}, '%')
+		    OR (
+		    	ACADEMIC_2 LIKE CONCAT('%', #{usrSchool, jdbcType=VARCHAR}, '%')
+		    	OR ACADEMIC_3 LIKE CONCAT('%', #{usrSchool, jdbcType=VARCHAR}, '%')
+		    	OR ACADEMIC_4 LIKE CONCAT('%', #{usrSchool, jdbcType=VARCHAR}, '%')
+		    )
+		</if>
+		<if test='usrMajor != null and usrMajor != ""'>
+		    AND ACADEMIC_1 LIKE CONCAT('%', #{usrMajor, jdbcType=VARCHAR}, '%')
+		    OR (
+		    	ACADEMIC_2 LIKE CONCAT('%', #{usrMajor, jdbcType=VARCHAR}, '%')
+		    	OR ACADEMIC_3 LIKE CONCAT('%', #{usrMajor, jdbcType=VARCHAR}, '%')
+		    	OR ACADEMIC_4 LIKE CONCAT('%', #{usrMajor, jdbcType=VARCHAR}, '%')
+		    )
+		</if>
+		<if test='(usrLevel != null and usrLevel != "") and (usrLevelMore == null or usrLevelMore == "")'>
+		    AND LEFT(ACADEMIC_1, 1) = #{usrLevel, jdbcType=VARCHAR}
+		    OR (
+		    	LEFT(ACADEMIC_2, 1) = #{usrLevel, jdbcType=VARCHAR}
+		    	OR LEFT(ACADEMIC_3, 1) = #{usrLevel, jdbcType=VARCHAR}
+		    	OR LEFT(ACADEMIC_4, 1) = #{usrLevel, jdbcType=VARCHAR}
+		    )
+		</if>
+		<if test='(usrLevel != null and usrLevel != "") and (usrLevelMore != null and usrLevelMore != "")'>		
+		    AND LEFT(ACADEMIC_1, 1) <![CDATA[ <= ]]> #{usrLevel, jdbcType=VARCHAR}
+		    OR (
+			    LEFT(ACADEMIC_2, 1) <![CDATA[ <= ]]> #{usrLevel, jdbcType=VARCHAR}
+			    OR LEFT(ACADEMIC_3, 1) <![CDATA[ <= ]]> #{usrLevel, jdbcType=VARCHAR}
+			    OR LEFT(ACADEMIC_4, 1) <![CDATA[ <= ]]> #{usrLevel, jdbcType=VARCHAR}
+		    )
+		</if>
+		<if test='cName != null and cName != ""'>
+		    AND C_NAME LIKE CONCAT('%', #{cName, jdbcType=VARCHAR}, '%')
+		</if>
+		<if test='(startYear != null  and startYear != "") and (endYear != null and endYear != "")'>
+		    AND YEAR BETWEEN #{startYear} AND #{endYear}
+		</if>		
+		<if test='contents != null and contents != ""'>
+		    AND DETAIL LIKE CONCAT('%', #{contents, jdbcType=VARCHAR}, '%')
+		</if>
+		<if test='license != null and license != ""'>
+		    AND LICENSE LIKE CONCAT('%', #{license, jdbcType=VARCHAR}, '%')
+		</if>
+		<if test='sources != null and sources != ""'>
+		    AND SOURCES = #{sources, jdbcType=VARCHAR}
+		</if>
+		<if test='(startDate != null  and startDate != "") and (endDate != null and endDate != "")'>
+		    AND DATE_FORMAT(U.REG_DATE, "%Y-%m-%d") BETWEEN #{startDate} AND #{endDate}
+		</if>
+		<if test='conNm != null and conNm != ""'>
+		    AND U.CON_NM LIKE CONCAT('%', #{conNm, jdbcType=VARCHAR}, '%')
+		</if>
+		<if test='adminYn == "N"'>
+			<choose>
+				<when test='authUser == "1"'>
+					AND PUBLIC_YN = 'Y'
+					OR (PUBLIC_YN = 'N' AND U.CON_ID = #{conId, jdbcType=VARCHAR})
+				</when>
+				<otherwise>
+					AND U.CON_ID = #{conId, jdbcType=VARCHAR}
+				</otherwise>
+			</choose>
+		</if>
+		<if test='closedDataType != null and closedDataType != ""'>
+			AND PUBLIC_YN = 'N'
+		</if>
+        ORDER BY ROWNUM DESC
+        LIMIT #{startRowNum, javaType=INT}, 15
+    </select>
+    
+    <!-- 후보자 리스트 총 개수 -->
+    <select id="getCandidateTotalCount" parameterType="hashmap" resultType="int">
+        SELECT
+			COUNT(*)
+		FROM
+			I_USER U
+		WHERE 
+			U.DEL_DATE IS NULL
+		<if test='searchText != null and searchText != ""'>
+		    AND (USR_NM LIKE CONCAT('%', #{searchText, jdbcType=VARCHAR}, '%') 
+		    OR (ACADEMIC_1 LIKE CONCAT('%', #{searchText, jdbcType=VARCHAR}, '%')
+		    	OR ACADEMIC_2 LIKE CONCAT('%', #{searchText, jdbcType=VARCHAR}, '%')
+		    	OR ACADEMIC_3 LIKE CONCAT('%', #{searchText, jdbcType=VARCHAR}, '%')
+		    	OR ACADEMIC_4 LIKE CONCAT('%', #{searchText, jdbcType=VARCHAR}, '%')
+		    	 )
+		    OR C_NAME LIKE CONCAT('%', #{searchText, jdbcType=VARCHAR}, '%')
+		    OR JOB1_NM LIKE CONCAT('%', #{searchText, jdbcType=VARCHAR}, '%')
+		    OR JOB2_NM LIKE CONCAT('%', #{searchText, jdbcType=VARCHAR}, '%'))
+		</if>
+		<if test='usrNm != null and usrNm != ""'>
+			AND USR_NM LIKE CONCAT('%', #{usrNm, jdbcType=VARCHAR}, '%')
+		</if>
+		<if test='gender != null and gender != ""'>
+			AND GENDER = #{gender, jdbcType=VARCHAR}
+		</if>
+		<if test='industry1 != null and industry1 != ""'>
+		    AND INDUSTRY1 = #{industry1, jdbcType=VARCHAR}
+		</if>
+		<if test='industry2 != null and industry2 != ""'>
+		    AND INDUSTRY2 = #{industry2, jdbcType=VARCHAR} 
+		</if>
+		<if test='job1 != null and job1 != ""'>
+		    AND JOB1 = #{job1, jdbcType=VARCHAR}
+		</if>
+		<if test='job2 != null and job2 != ""'>
+		    AND JOB2 = #{job2, jdbcType=VARCHAR} 
+		</if>
+		<if test='usrSchool != null and usrSchool != ""'>
+		    AND ACADEMIC_1 LIKE CONCAT('%', #{usrSchool, jdbcType=VARCHAR}, '%')
+		    OR (
+		    	ACADEMIC_2 LIKE CONCAT('%', #{usrSchool, jdbcType=VARCHAR}, '%')
+		    	OR ACADEMIC_3 LIKE CONCAT('%', #{usrSchool, jdbcType=VARCHAR}, '%')
+		    	OR ACADEMIC_4 LIKE CONCAT('%', #{usrSchool, jdbcType=VARCHAR}, '%')
+		    )
+		</if>
+		<if test='usrMajor != null and usrMajor != ""'>
+		    AND ACADEMIC_1 LIKE CONCAT('%', #{usrMajor, jdbcType=VARCHAR}, '%')
+		    OR (
+		    	ACADEMIC_2 LIKE CONCAT('%', #{usrMajor, jdbcType=VARCHAR}, '%')
+		    	OR ACADEMIC_3 LIKE CONCAT('%', #{usrMajor, jdbcType=VARCHAR}, '%')
+		    	OR ACADEMIC_4 LIKE CONCAT('%', #{usrMajor, jdbcType=VARCHAR}, '%')
+		    )
+		</if>
+		<if test='(usrLevel != null and usrLevel != "") and (usrLevelMore == null or usrLevelMore == "")'>
+		    AND LEFT(ACADEMIC_1, 1) = #{usrLevel, jdbcType=VARCHAR}
+		    OR (
+		    	LEFT(ACADEMIC_2, 1) = #{usrLevel, jdbcType=VARCHAR}
+		    	OR LEFT(ACADEMIC_3, 1) = #{usrLevel, jdbcType=VARCHAR}
+		    	OR LEFT(ACADEMIC_4, 1) = #{usrLevel, jdbcType=VARCHAR}
+		    )
+		</if>
+		<if test='(usrLevel != null and usrLevel != "") and (usrLevelMore != null and usrLevelMore != "")'>		
+		    AND LEFT(ACADEMIC_1, 1) <![CDATA[ <= ]]> #{usrLevel, jdbcType=VARCHAR}
+		    OR (
+			    LEFT(ACADEMIC_2, 1) <![CDATA[ <= ]]> #{usrLevel, jdbcType=VARCHAR}
+			    OR LEFT(ACADEMIC_3, 1) <![CDATA[ <= ]]> #{usrLevel, jdbcType=VARCHAR}
+			    OR LEFT(ACADEMIC_4, 1) <![CDATA[ <= ]]> #{usrLevel, jdbcType=VARCHAR}
+		    )
+		</if>
+		<if test='cName != null and cName != ""'>
+		    AND C_NAME LIKE CONCAT('%', #{cName, jdbcType=VARCHAR}, '%')
+		</if>
+		<if test='(startYear != null  and startYear != "") and (endYear != null and endYear != "")'>
+		    AND YEAR BETWEEN #{startYear} AND #{endYear}
+		</if>		
+		<if test='contents != null and contents != ""'>
+		    AND SUMMARY LIKE CONCAT('%', #{contents, jdbcType=VARCHAR}, '%')
+		    OR DETAIL LIKE CONCAT('%', #{contents, jdbcType=VARCHAR}, '%')
+		</if>
+		<if test='license != null and license != ""'>
+		    AND LICENSE LIKE CONCAT('%', #{license, jdbcType=VARCHAR}, '%')
+		</if>
+		<if test='sources != null and sources != ""'>
+		    AND SOURCES = #{sources, jdbcType=VARCHAR}
+		</if>
+		<if test='(startDate != null  and startDate != "") and (endDate != null and endDate != "")'>
+		    AND DATE_FORMAT(U.REG_DATE, "%Y-%m-%d") BETWEEN #{startDate} AND #{endDate}
+		</if>
+		<if test='conNm != null and conNm != ""'>
+		    AND U.CON_NM LIKE CONCAT('%', #{conNm, jdbcType=VARCHAR}, '%')
+		</if>
+		<if test='adminYn == "N"'>
+			<choose>
+				<when test='authUser == "1"'>
+					AND PUBLIC_YN = 'Y'
+					OR (PUBLIC_YN = 'N' AND U.CON_ID = #{conId, jdbcType=VARCHAR})
+				</when>
+				<otherwise>
+					AND U.CON_ID = #{conId, jdbcType=VARCHAR}
+				</otherwise>
+			</choose>
+		</if>
+    </select>
+    
+    <!-- 후보자 상세  -->
+    <select id="getCandidate" parameterType="hashmap" resultType="hashmap">
+        SELECT
+			U.USR_ID
+            ,USR_NM
+            ,INDUSTRY1
+            ,FN_CODE_NAME(INDUSTRY1) AS INDUSTRY1_NM
+            ,INDUSTRY2
+            ,FN_CODE_NAME(INDUSTRY2) AS INDUSTRY2_NM
+            ,JOB1
+            ,JOB1_NM
+            ,JOB2
+            ,JOB2_NM
+            ,YEAR
+            ,GENDER
+            ,ADDRESS
+            ,PUBLIC_YN
+            ,LANG
+            ,LICENSE
+            ,BASE
+            ,BONUS
+            ,ACADEMIC_1
+            ,ACADEMIC_2
+            ,ACADEMIC_3
+            ,ACADEMIC_4
+            ,C_NAME
+            ,SUMMARY
+            ,DETAIL
+            ,SOURCES
+            ,U.CON_ID
+            ,U.CON_NM
+            ,PHONE
+            ,MOBILE
+            ,EMAIL
+            ,DATE_FORMAT(U.REG_DATE, "%Y-%m-%d") AS REG_DATE
+        FROM 
+            I_USER U
+        WHERE 
+            U.USR_ID = #{usrId, jdbcType=VARCHAR}
+    </select>
+
+    <!-- 후보자 등록 -->
+    <insert id="setCandidate" parameterType="hashmap">
+        <selectKey keyProperty="usrId" resultType="string" order="BEFORE">
+            SELECT CONCAT("USR", LPAD(RIGHT(IFNULL(MAX(USR_ID), 0), 8)+1, 8, 0)) FROM I_USER
+        </selectKey>
+        INSERT INTO I_USER
+        (
+            USR_ID
+            ,USR_NM
+            ,INDUSTRY1
+            ,INDUSTRY2
+            ,JOB1
+            ,JOB1_NM
+            ,JOB2
+            ,JOB2_NM
+            ,YEAR
+            ,GENDER
+            ,ADDRESS
+            ,PUBLIC_YN
+            ,LANG
+            ,LICENSE
+            ,BASE
+            ,BONUS
+            ,ACADEMIC_1
+            ,ACADEMIC_2
+            ,ACADEMIC_3
+            ,ACADEMIC_4
+            ,C_NAME
+            ,SUMMARY
+            ,DETAIL
+            ,SOURCES
+            ,CON_ID
+            ,CON_NM
+            ,PHONE
+            ,MOBILE
+            ,EMAIL
+            ,REG_DATE
+        )
+        VALUES
+        (
+            #{usrId, jdbcType=VARCHAR}
+            ,#{usrNm, jdbcType=VARCHAR}
+            ,#{industry1, jdbcType=VARCHAR}
+            ,#{industry2, jdbcType=VARCHAR}
+            ,#{job1, jdbcType=VARCHAR}
+            ,#{job1Nm, jdbcType=VARCHAR}
+            ,#{job2, jdbcType=VARCHAR}
+            ,#{job2Nm, jdbcType=VARCHAR}
+            ,#{year, jdbcType=VARCHAR}
+            ,#{gender, jdbcType=CHAR}
+            ,#{address, jdbcType=VARCHAR}
+            ,#{publicYn, jdbcType=CHAR}
+            ,#{lang, jdbcType=VARCHAR}
+            ,#{license, jdbcType=VARCHAR}
+            ,#{base, jdbcType=VARCHAR}
+            ,#{bonus, jdbcType=VARCHAR}
+            ,#{academic_1, jdbcType=VARCHAR}
+            ,#{academic_2, jdbcType=VARCHAR}
+            ,#{academic_3, jdbcType=VARCHAR}
+            ,#{academic_4, jdbcType=VARCHAR}
+            ,#{cName, jdbcType=VARCHAR}
+            ,#{summary, jdbcType=VARCHAR}
+            ,#{detail, jdbcType=VARCHAR}
+            ,#{sources, jdbcType=VARCHAR}
+            ,#{conId, jdbcType=VARCHAR}
+            ,(SELECT CON_NM FROM I_CONSULTANT WHERE CON_ID = #{conId, jdbcType=VARCHAR})
+            ,#{phone, jdbcType=VARCHAR}
+            ,#{mobile, jdbcType=VARCHAR}
+            ,#{email, jdbcType=VARCHAR}
+            ,NOW()
+        )
+    </insert>
+    
+    <!-- 후보자 수정 -->
+    <update id="modCandidate" parameterType="hashmap">
+    	UPDATE I_USER
+    	SET
+    		USR_NM = #{usrNm, jdbcType=VARCHAR}
+            ,INDUSTRY1 = #{industry1, jdbcType=VARCHAR}
+            ,INDUSTRY2 = #{industry2, jdbcType=VARCHAR}
+            ,JOB1 = #{job1, jdbcType=VARCHAR}
+            ,JOB1_NM = #{job1Nm, jdbcType=VARCHAR}
+            ,JOB2 = #{job2, jdbcType=VARCHAR}
+            ,JOB2_NM = #{job2Nm, jdbcType=VARCHAR}
+            ,YEAR = #{year, jdbcType=VARCHAR}
+            ,GENDER = #{gender, jdbcType=CHAR}
+            ,ADDRESS = #{address, jdbcType=VARCHAR}
+            ,PUBLIC_YN = #{publicYn, jdbcType=CHAR}
+            ,LANG = #{lang, jdbcType=VARCHAR}
+            ,LICENSE = #{license, jdbcType=VARCHAR}
+            ,BASE = #{base, jdbcType=VARCHAR}
+            ,BONUS = #{bonus, jdbcType=VARCHAR}
+            ,ACADEMIC_1 = #{academic_1, jdbcType=VARCHAR}
+            ,ACADEMIC_2 = #{academic_2, jdbcType=VARCHAR}
+            ,ACADEMIC_3 = #{academic_3, jdbcType=VARCHAR}
+            ,ACADEMIC_4 = #{academic_4, jdbcType=VARCHAR}
+            ,C_NAME = #{cName, jdbcType=VARCHAR}
+            ,SUMMARY = #{summary, jdbcType=VARCHAR}
+            ,DETAIL = #{detail, jdbcType=VARCHAR}
+            ,SOURCES = #{sources, jdbcType=VARCHAR}
+            ,CON_ID = #{conId, jdbcType=VARCHAR}
+            ,CON_NM = (SELECT CON_NM FROM I_CONSULTANT WHERE CON_ID = #{conId, jdbcType=VARCHAR})
+            ,PHONE = #{phone, jdbcType=VARCHAR}
+            ,MOBILE = #{mobile, jdbcType=VARCHAR}
+            ,EMAIL = #{email, jdbcType=VARCHAR}
+            ,MOD_DATE = NOW() 
+    	WHERE
+    		USR_ID = #{usrId, jdbcType=VARCHAR} 
+    </update>
+    
+    <!-- 후보자 삭제 -->
+    <update id="delCandidate" parameterType="hashmap">
+        UPDATE I_USER
+        SET
+            DEL_DATE = NOW() 
+        WHERE 
+            USR_ID = #{usrId, jdbcType=VARCHAR} 
+    </update>
+    
+    <!-- 후보자 중복확인 팝업 리스트 -->
+    <select id="getCandidatePopList" parameterType="hashmap" resultType="hashmap">
+    	SELECT
+			U.USR_ID 
+			,USR_NM
+			,CONCAT(USR_NM, ' (', IFNULL(RIGHT(YEAR, 2), ''), ',',
+				CASE GENDER 
+					WHEN 'M' THEN '남'
+					WHEN 'W' THEN '여'
+					ELSE ''
+				END ,')') AS USR_INFO
+			,ACADEMIC.USR_SCHOOL
+			,ACADEMIC.USR_MAJOR
+			,U.MOBILE
+		FROM
+			I_USER U
+			LEFT OUTER JOIN (
+									SELECT A.USR_ID, A.LVL, B.USR_SCHOOL, B.USR_MAJOR
+									FROM (
+												SELECT USR_ID, MIN(USR_LEVEL) AS LVL
+												FROM I_USER_ACADEMIC
+												WHERE USR_LEVEL <![CDATA[ <> ]]> ''
+												GROUP BY USR_ID
+											) A
+									INNER JOIN I_USER_ACADEMIC B
+										ON (A.USR_ID = B.USR_ID AND A.LVL = B.USR_LEVEL) 
+								 ) ACADEMIC
+				ON (U.USR_ID = ACADEMIC.USR_ID)
+			LEFT JOIN I_CONSULTANT C
+				ON (U.CON_ID = C.CON_ID)
+		WHERE
+			U.DEL_DATE IS NULL 
+			AND USR_NM LIKE CONCAT('%', #{usrNm, jdbcType=VARCHAR}, '%')
+			<if test='adminYn == "N"'>
+				<choose>
+					<when test='authUser == "1"'>
+						AND (PUBLIC_YN = 'Y'
+						OR (PUBLIC_YN = 'N' AND U.CON_ID = #{conId, jdbcType=VARCHAR}))
+					</when>
+					<otherwise>
+						AND U.CON_ID = #{conId, jdbcType=VARCHAR}
+					</otherwise>
+				</choose>
+			</if>
+    </select>
+    
+	<!-- 포지션 팝업 리스트 -->
+    <select id="getPositionPopList" parameterType="hashmap" resultType="hashmap">
+     	SELECT
+            @ROWNUM := @ROWNUM + 1 AS ROWNUM
+            ,POS_ID
+            ,POS_NM
+            ,COM_ID
+            ,COM_NM
+            ,DATE_FORMAT(REG_DATE, "%Y-%m-%d") AS REG_DATE
+        FROM 
+            I_POSITION
+            ,(SELECT @ROWNUM := 0) TMP
+		WHERE 
+			DEL_DATE IS NULL
+		<if test='posNm != null and posNm != ""'>
+		    AND POS_NM LIKE CONCAT('%', #{posNm, jdbcType=VARCHAR}, '%')
+		</if>
+		ORDER BY REG_DATE DESC
+        LIMIT #{startRowNum, javaType=INT}, 5
+    </select>
+    
+	<!-- 포지션 팝업 리스트 총 개수 -->
+    <select id="getPositionPopTotalCount" parameterType="hashmap" resultType="int">
+    	SELECT 
+        	COUNT(*) 
+        FROM 
+        	I_POSITION
+        WHERE 
+			DEL_DATE IS NULL
+		<if test='posNm != null and posNm != ""'>
+		    AND POS_NM LIKE CONCAT('%', #{posNm, jdbcType=VARCHAR}, '%')
+		</if>
+    </select>
+    
+	<!-- 후보자별 포지션 진행현황 리스트 -->
+    <select id="getPosRecPresentList" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			@ROWNUM := @ROWNUM + 1 AS ROWNUM
+			,R.REC_ID
+			,P.POS_NM
+			,P.COM_NM
+			,DATE_FORMAT(P.REG_DATE, "%Y-%m-%d") AS REG_DATE
+			,R.USR_ID
+			,FN_CONSULTENTNAME(P.CON_ID) AS CON_NM
+			,R.CON_ID
+		FROM
+			I_REC_PRESENT R
+			INNER JOIN I_POSITION P
+				ON(R.POS_ID = P.POS_ID)
+			,(SELECT @ROWNUM := 0) TMP
+		WHERE 
+			R.DEL_DATE IS NULL
+			AND USR_ID = #{usrId, jdbcType=VARCHAR}
+		<if test='recId != null and recId != ""'>
+	    	AND R.REC_ID = #{recId, jdbcType=VARCHAR}
+		</if>
+		ORDER BY R.REG_DATE DESC
+    </select>
+    
+	<!-- 후보자별 포지션 진행현황 저장 -->
+    <insert id="addPosRecPresent" parameterType="hashmap">
+    	<selectKey keyProperty="recId" resultType="string" order="BEFORE">
+            SELECT CONCAT("REC", LPAD(RIGHT(IFNULL(MAX(REC_ID), 0), 8)+1, 8, 0)) FROM I_REC_PRESENT
+        </selectKey>
+        INSERT INTO I_REC_PRESENT
+        (
+            REC_ID
+            ,POS_ID
+            ,USR_ID
+            ,CON_ID
+            ,REG_DATE
+        )
+        VALUES
+        (
+            #{recId, jdbcType=VARCHAR}
+            ,#{posId, jdbcType=VARCHAR}
+            ,#{usrId, jdbcType=VARCHAR}
+            ,#{conId, jdbcType=VARCHAR}
+            ,NOW()
+        )
+    </insert>
+    
+    <!-- 진행현황 삭제 -->
+    <update id="delPosRecPresent" parameterType="hashmap">
+    	UPDATE I_REC_PRESENT
+    	SET
+    		DEL_DATE = NOW()
+    	<trim prefix="WHERE" prefixOverrides="AND | OR" >
+        	<if test='recId != null and recId != ""'>  
+    			AND REC_ID = #{recId, jdbcType=VARCHAR}
+    		</if>
+    		<if test='usrId != null and usrId != ""'>  
+    			AND USR_ID = #{usrId, jdbcType=VARCHAR}
+    		</if>
+    	</trim>
+    </update>
+    
+    <!-- 진행상태 리스트 -->
+    <select id="getPosProStatusList" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			STA_ID
+			,REC_ID
+			,CON_ID
+			,STATE
+			,STATE_NM
+			,STATE_DATE
+			,DATE_FORMAT(REG_DATE, "%Y-%m-%d") AS REG_DATE
+			,REG_DATE AS R_DATE
+		FROM
+			I_PRO_STATUS
+		WHERE 
+			DEL_DATE IS NULL
+		<if test='recId != null and recId != ""'>
+	    	AND REC_ID = #{recId, jdbcType=VARCHAR}
+		</if>
+		ORDER BY R_DATE DESC
+    </select>
+    
+    <!-- 진행상태 등록 -->
+    <insert id="addPosProStatus" parameterType="hashmap">
+    	<selectKey keyProperty="staId" resultType="string" order="BEFORE">
+            SELECT CONCAT("STA", LPAD(RIGHT(IFNULL(MAX(STA_ID), 0), 8)+1, 8, 0)) FROM I_PRO_STATUS
+        </selectKey>
+        INSERT INTO I_PRO_STATUS
+        (
+        	STA_ID
+        	,REC_ID
+        	,CON_ID
+        	,STATE
+        	,STATE_NM
+        	,STATE_DATE
+        	,REG_DATE
+        )
+        VALUES
+        (
+        	#{staId, jdbcType=VARCHAR}
+        	,#{recId, jdbcType=VARCHAR}
+        	,#{conId, jdbcType=VARCHAR}
+        	,#{state, jdbcType=VARCHAR}
+        	,#{stateNm, jdbcType=VARCHAR}
+        	,#{stateDate, jdbcType=VARCHAR}
+        	,NOW()
+        )
+    </insert>
+    
+	<!-- 진행상태 삭제 -->
+    <update id="delPosProStatus" parameterType="hashmap">
+    	UPDATE I_PRO_STATUS
+    	SET
+    		DEL_DATE = NOW()
+        <trim prefix="WHERE" prefixOverrides="AND | OR" >
+        	<if test='staId != null and staId != ""'>    	
+    			AND STA_ID = #{staId, jdbcType=VARCHAR}
+    		</if>
+    		<if test='recId != null and recId != ""'>
+    			AND REC_ID = #{recId, jdbcType=VARCHAR}
+    		</if>
+    	</trim>
+    </update>
+    
+	<!-- 관심DB 여부 -->
+    <select id="getMarkId" parameterType="hashmap" resultType="string">
+		SELECT
+			MARK_ID
+		FROM
+			I_MARK
+		WHERE
+			USR_ID = #{usrId, jdbcType=VARCHAR}
+			AND CON_ID = #{conId, jdbcType=VARCHAR}
+    </select>
+    
+    <!-- 공개여부 상태값 변경 -->
+    <update id="changePublicYn" parameterType="hashmap">
+    	UPDATE I_USER
+    	SET
+    		PUBLIC_YN = #{publicYn, jdbcType=CHAR}
+    	WHERE
+    		USR_ID = #{usrId, jdbcType=VARCHAR} 
+    </update>
+    
+</mapper>

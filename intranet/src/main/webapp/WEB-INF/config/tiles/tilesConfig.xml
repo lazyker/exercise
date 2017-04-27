@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tiles-definitions PUBLIC "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN"
+        "http://tiles.apache.org/dtds/tiles-config_3_0.dtd">
+
+<tiles-definitions>
+
+    <definition name="basic_layout" templateExpression="/WEB-INF/template/basic/layout.jsp">
+        <put-attribute name="title" value=""/>
+        <put-attribute name="header" expression="/WEB-INF/template/basic/header.jsp"/>
+        <put-attribute name="sidebar" expression="/WEB-INF/template/basic/sidebar.jsp"/>
+        <put-attribute name="content" expression="/WEB-INF/template/basic/content.jsp"/>
+        <put-attribute name="footer" expression="/WEB-INF/template/basic/footer.jsp"/>
+    </definition>
+
+    <definition name="blank_layout" templateExpression="/WEB-INF/template/blank/layout.jsp">
+        <put-attribute name="title" value="팝업"/>
+        <put-attribute name="content" expression="/WEB-INF/template/blank/content.jsp"/>
+    </definition>
+    
+    <definition name="login_layout" templateExpression="/WEB-INF/template/blank/loginLayout.jsp">
+        <put-attribute name="title" value="로그인"/>
+        <put-attribute name="content" expression="/WEB-INF/template/blank/content.jsp"/>
+    </definition>
+
+    <!-- 장애 화면 -->
+<!--     <definition name="common/error/*" extends="basic_layout"> -->
+<!--         <put-attribute name="title" value="야근신청시스템 장애안내"/> -->
+<!--         <put-attribute name="content" expression="/WEB-INF/views/common/error/{1}.jsp"/> -->
+<!--     </definition> -->
+
+    <!-- 시용자 화면1 -->
+    <definition name="*" extends="basic_layout">
+        <put-attribute name="title" value="코즈엘 인트라넷"/>
+        <put-attribute name="content" expression="/WEB-INF/views/{1}.jsp"/>
+    </definition>
+
+	<!-- 시용자 화면2 -->
+    <definition name="*/*" extends="basic_layout">
+        <put-attribute name="title" value="코즈엘 인트라넷"/>
+        <put-attribute name="content" expression="/WEB-INF/views/{1}/{2}.jsp"/>
+    </definition>
+    
+	<!-- 관리자 화면 -->
+    <definition name="admin/*/*" extends="basic_layout">
+        <put-attribute name="title" value="코즈엘 인트라넷"/>
+        <put-attribute name="content" expression="/WEB-INF/views/admin/{1}/{2}.jsp"/>
+    </definition>
+    
+    <!-- 팝업 화면 -->
+    <definition name="pop/*/*" extends="blank_layout">
+        <put-attribute name="title" value="팝업"/>
+        <put-attribute name="content" expression="/WEB-INF/views/{1}/{2}.jsp"/>
+    </definition>
+    
+    <!-- 로그인 화면 -->
+    <definition name="blank/*/*" extends="login_layout">
+        <put-attribute name="title" value="로그인"/>
+        <put-attribute name="content" expression="/WEB-INF/views/{1}/{2}.jsp"/>
+    </definition>
+    
+</tiles-definitions>

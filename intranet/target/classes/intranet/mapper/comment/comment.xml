@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" > 
+
+<mapper namespace="comment">
+    
+    <!-- 덧글 리스트 -->
+    <select id="getCommentList" parameterType="hashmap" resultType="hashmap">
+        SELECT
+            CMT_ID
+            ,CON_ID
+            ,FN_CONSULTENTNAME(CON_ID) AS CON_NM
+            ,REPLACE(CONTENTS, '\n',  <![CDATA['<br/>']]> ) AS CONTENTS
+            ,DATE_FORMAT(REG_DATE, "%Y-%m-%d") AS REG_DATE
+        FROM 
+            I_COMMENT
+        WHERE
+            ITEM_ID = #{itemId, jdbcType=VARCHAR}
+            AND DEL_DATE IS NULL
+    </select>
+
+    <!-- 덧글 등록 -->
+    <insert id="setComment" parameterType="hashmap">
+        <selectKey keyProperty="cmtId" resultType="string" order="BEFORE">
+            SELECT CONCAT("CMT", LPAD(RIGHT(IFNULL(MAX(CMT_ID), 0), 8)+1, 8, 0)) FROM I_COMMENT
+        </selectKey>
+        INSERT INTO I_COMMENT
+        (
+            CMT_ID
+            ,CMT_TYPE
+            ,ITEM_ID
+            ,CON_ID
+            ,CONTENTS
+            ,REG_DATE
+        )
+        VALUES
+        (
+            #{cmtId, jdbcType=VARCHAR}
+            ,#{cmtType, jdbcType=CHAR}
+            ,#{itemId, jdbcType=VARCHAR}
+            ,#{conId, jdbcType=VARCHAR}
+            ,#{contents, jdbcType=VARCHAR}
+            ,#{regDate, jdbcType=DATE}
+        )
+    </insert>
+    
+    <!-- 덧글 수정 -->
+    <update id="modComment" parameterType="hashmap">
+    	UPDATE I_COMMENT
+    	SET
+    		CONTENTS = #{contents, jdbcType=VARCHAR}
+    		,REG_DATE = #{regDate, jdbcType=DATE}
+    	WHERE
+    		CMT_ID = #{cmtId, jdbcType=VARCHAR}
+    </update>
+    
+    <!-- 덧글 삭제 -->
+    <update id="delComment" parameterType="hashmap">
+    	UPDATE I_COMMENT
+    	SET
+    		DEL_DATE = NOW()
+    	WHERE
+    		DEL_DATE IS NULL
+    		<choose>
+				<when test='cmtId != null and cmtId != ""'>
+					AND CMT_ID = #{cmtId, jdbcType=VARCHAR}
+	           </when>
+	           <otherwise>
+					AND ITEM_ID = #{orgId, jdbcType=VARCHAR}
+	           </otherwise>
+	        </choose>
+    </update>
+    
+</mapper>

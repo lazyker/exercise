@@ -9,7 +9,8 @@ router.get('/', function(req, res){
 });
 
 router.get('/write', function(req, res){
-    res.render('board/edit');
+    var boardDetail = {};
+    res.render('board/edit', {boardDetail : boardDetail});
 });
 
 router.post('/write', function(req, res) {
@@ -20,6 +21,22 @@ router.post('/write', function(req, res) {
     Board.save(function(err) {
         res.redirect('/board');
     });
+});
+
+router.get('/edit/:id', function(req, res) {
+    BoardModel.findOne({'id' : req.params.id}, function(err, boardDetail) {
+        res.render('board/edit', {boardDetail, boardDetail});
+    });
+});
+
+router.post('/edit/:id', function(req, res) {
+    var query = {
+        title : req.body.title,
+        content : req.body.content
+    }
+    BoardModel.update({'id' : req.params.id}, {$set : query}, function(err) {
+        res.redirect('/board');    
+    })
 });
 
 router.get('/detail/:id', function(req, res) {

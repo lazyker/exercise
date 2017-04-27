@@ -1,0 +1,66 @@
+
+/*---------------------------------------------
+	페이지 레이아웃 관련
+---------------------------------------------*/
+/*상단*/
+body {background-image:url(../images/login_bg.jpg); background-position:center top;}
+
+#wrap{width:100%;}
+.top_l{ width:83px; margin:33px auto;}
+.l_title{width:299px; margin:180px auto 50px;}
+.in_l {width:295px; margin:auto;}
+.in_l li{padding:18px 0; color:#8284a2; font-size:14px; font-weight:600;}
+.in_l .lig_in{ border-bottom:1px solid #9c979d; color:#b5b5c2; height:20px;}
+.in_l .lig_in .in{ background: url('../images/id.png') no-repeat 2px 0; padding-left:27px; padding-right:10px; display:inline-block; float:left; width:60px; font-weight:600;}
+.in_l .lig_in .pw{ background: url('../images/pw.png') no-repeat 2px 0; padding-left:27px; padding-right:10px; display:inline-block; float:left; width:60px; font-weight:600;}
+
+/*로그인버튼*/
+.in_l li .l_ok a{display:block; background:#545ba5; padding:10px 13px; color:#fff; font-size:16px; text-align:center; font-weight:700; border-radius:3px;}
+.in_l li .l_ok a:hover {background:#5c65bf;}
+
+/*로그인 인풋*/
+input.log {border:0; font-size:14px; color:#a0a5d7; padding:2px; background-color:transparent;}
+
+.incheck{ position:relative; overflow:hidden; display:inline-block; height:18px;}
+.incheck label { margin-left:15px;}
+
+
+/* 선택*/
+	input[type=checkbox] {  
+	display: none;  
+	}
+	
+	input[type=checkbox] + label{
+	display: inline-block;  
+	cursor: pointer;  
+	position: relative;  
+	padding-left: 22px;    
+	font-size: 13px;
+	}
+	
+	input[type=checkbox]+ label:before {     
+	
+	content: "";  
+	display: inline-block;  
+	
+	width: 15px;  
+	height: 15px;   
+	position: absolute;  
+	left: 0;  
+	bottom: 1px;  
+	background-color: #ccc;  
+	border-radius: 2px; 
+	box-shadow: inset 0px 0px 0px 0px rgba(0, 0, 0, .3), 0px 0px 0px 0px rgba(255, 255, 255, .8);  
+	}
+	input[type=checkbox]:checked + label:before { 
+	
+	content: "\2714";  /* 체크모양 */
+	text-shadow: 0px 0px 0px rgba(0, 0, 0, .2);  
+	font-size: 12px; 
+	font-family:'Nanum Gothic';  
+	color: #3d396d;  
+	background:#fff;
+	text-align: center;  
+	line-height: 17px;  
+	
+	} 

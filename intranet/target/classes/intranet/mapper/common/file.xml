@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" > 
+
+<mapper namespace="file">
+
+	<!-- 파일 업로드 -->
+	<insert id="uploadFile" parameterType="hashmap">
+        <selectKey keyProperty="attId" resultType="string" order="BEFORE">
+            SELECT CONCAT("ATT", LPAD(RIGHT(IFNULL(MAX(ATT_ID), 0), 8)+1, 8, 0)) FROM I_ATTACH
+        </selectKey>
+	        INSERT INTO I_ATTACH
+	        (
+	            ATT_ID
+	            ,ORG_ID
+	            ,FILE_TYPE
+	            ,FILE_ORDER
+	            ,ORIGINAL_FILE_NM
+	            ,STORED_FILE_NM
+	            ,FILE_PATH
+	            ,FILE_SIZE
+	            ,CON_ID
+	            ,REG_DATE
+	        )
+	        VALUES
+	        (
+	           #{attId, jdbcType=VARCHAR}
+	            ,#{orgId, jdbcType=VARCHAR}
+	            ,#{fileType, jdbcType=CHAR}
+	            ,#{fileOrder, jdbcType=CHAR}
+	            ,#{originalFileNm, jdbcType=VARCHAR}
+	            ,#{storedFileNm, jdbcType=VARCHAR}
+	            ,#{filePath, jdbcType=VARCHAR}
+	            ,#{fileSize, jdbcType=NUMERIC}
+	            ,#{conId, jdbcType=VARCHAR}
+	            ,NOW()
+	        )
+	</insert>
+
+	<!-- 파일 리스트 -->
+	<select id="getFileList" parameterType="hashmap" resultType="hashmap">
+	        SELECT
+	            ATT_ID
+	            ,ORG_ID
+	            ,FILE_ORDER
+	            ,FILE_TYPE
+	            ,ORIGINAL_FILE_NM
+	            ,FILE_PATH
+	            ,ROUND(FILE_SIZE/1024,1) AS FILE_SIZE
+	        FROM
+	            I_ATTACH
+	        WHERE
+	        	DEL_DATE IS NULL
+	            AND ORG_ID = #{orgId, jdbcType=VARCHAR}
+	</select>
+	
+	<!-- 파일 정보 -->
+	<select id="getFileInfo" parameterType="hashmap" resultType="hashmap">
+	        SELECT
+	            STORED_FILE_NM
+	            ,ORIGINAL_FILE_NM
+	            ,FILE_TYPE
+	            ,FILE_PATH
+	        FROM
+	            I_ATTACH
+	        WHERE
+	        	DEL_DATE IS NULL
+	        <choose>
+	           <when test='attId != null and attId != ""'>
+					AND ATT_ID = #{attId, jdbcType=VARCHAR}
+	           </when>
+	           <otherwise>
+					AND ORG_ID = #{orgId, jdbcType=VARCHAR}
+	           </otherwise>
+	        </choose>
+	</select>
+	
+	<!-- 파일 삭제 -->
+	<update id="delFile" parameterType="hashmap">
+        UPDATE I_ATTACH
+        SET
+        	DEL_DATE = NOW()  
+       	WHERE
+       		DEL_DATE IS NULL
+			<choose>
+				<when test='attId != null and attId != ""'>
+					AND ATT_ID = #{attId, jdbcType=VARCHAR}
+	           </when>
+	           <otherwise>
+					AND ORG_ID = #{orgId, jdbcType=VARCHAR}
+	           </otherwise>
+	        </choose>
+    </update>
+
+</mapper>

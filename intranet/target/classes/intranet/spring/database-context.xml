@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:util="http://www.springframework.org/schema/util"
+		xmlns:tx="http://www.springframework.org/schema/tx"
+		xmlns="http://www.springframework.org/schema/beans" xmlns:mybatis="http://mybatis.org/schema/mybatis-spring"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans 
+						http://www.springframework.org/schema/beans/spring-beans.xsd  
+						http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring.xsd
+						http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.2.xsd">
+
+<!--     <tx:annotation-driven/> -->
+
+<!-- 	<util:properties id="config" location="classpath:intranet/props/config_development.xml" /> -->
+	<util:properties id="config" location="classpath:intranet/props/config_#{systemEnvironment['COZEL_ENV']}.xml" />
+
+    <bean id="dataSourceSpied" class="org.apache.commons.dbcp2.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="#{config['jdbc.driver']}"/>
+        <property name="url" value="#{config['jdbc.url']}"/>
+        <property name="username" value="#{config['jdbc.user']}"/>
+        <property name="password" value="#{config['jdbc.pwd']}"/>
+<!--         <property name="maxTotal"></property> 동시에 사용할 수 있는 최대 커넥션 개수(기본값: 8) -->
+<!--         <property name="maxIdle"></property> 커넥션 풀에 반납할 때 최대로 유지될 수 있는 커넥션 개수(기본값: 8) -->
+<!--         <property name="maxWaitMillis"></property> 반납 대기 시간 -->
+    </bean>
+    
+    <bean id="smsDataSourceSpied" class="org.apache.commons.dbcp2.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="#{config['sms.jdbc.driver2']}"/>
+        <property name="url" value="#{config['sms.jdbc.url2']}"/>
+        <property name="username" value="#{config['sms.jdbc.user2']}"/>
+        <property name="password" value="#{config['sms.jdbc.pwd2']}"/>
+    </bean>
+    
+    <!-- SQL LOG INTERCEPTOR -->
+    <bean id="dataSource" class="net.sf.log4jdbc.Log4jdbcProxyDataSource">
+    	<constructor-arg ref="dataSourceSpied" />
+    	<property name="logFormatter">
+			<bean class="net.sf.log4jdbc.tools.Log4JdbcCustomFormatter">
+				<property name="loggingType" value="MULTI_LINE" />
+				<property name="sqlPrefix" value="SQL::: " />
+			</bean>
+		</property> 
+    </bean>
+    <bean id="smsDataSource" class="net.sf.log4jdbc.Log4jdbcProxyDataSource">
+    	<constructor-arg ref="smsDataSourceSpied" />
+    	<property name="logFormatter">
+			<bean class="net.sf.log4jdbc.tools.Log4JdbcCustomFormatter">
+				<property name="loggingType" value="MULTI_LINE" />
+				<property name="sqlPrefix" value="SQL::: " />
+			</bean>
+		</property> 
+    </bean>
+        
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="mapperLocations" value="classpath*:intranet/mapper/**/*.xml" />
+	</bean>
+	
+	<bean id="smsSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="smsDataSource" />
+		<property name="mapperLocations" value="classpath*:intranet/mapper/common/sms.xml" />
+	</bean>
+    
+	<bean id="sqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate" destroy-method="clearCache">
+		<constructor-arg index="0" ref="sqlSessionFactory" />
+	</bean>
+	
+	<bean id="smsSqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate" destroy-method="clearCache">
+		<constructor-arg index="0" ref="smsSqlSessionFactory" />
+	</bean>
+	
+<!--     <bean id="transactionManager"    class="org.springframework.jdbc.datasource.DataSourceTransactionManager">   -->
+<!--         <property name="dataSource" ref="dataSource"/>   -->
+<!--     </bean>   -->
+	
+<!-- 	  <bean id="transactionTemplate" class="org.springframework.transaction.support.TransactionTemplate"   -->
+<!--         p:transactionManager-ref="transactionManager"/>  -->
+	
+<!-- 	<tx:annotation-driven transaction-manager="transactionManager"/>  -->
+
+</beans>

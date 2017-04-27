@@ -1,0 +1,344 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" > 
+
+<mapper namespace="company">
+
+    <!-- 고객사 리스트  -->
+    <select id="getCompanyList" parameterType="hashmap" resultType="hashmap">
+        SELECT
+            @ROWNUM := @ROWNUM + 1 AS ROWNUM
+            ,COM_ID
+            ,COM_NM
+            ,CASE WHEN SECTION = 'A' THEN '고객사' WHEN SECTION = 'B' THEN '마케팅' END AS SECTION_NM
+            ,CASE 
+                WHEN COM_TYPE = 'A' THEN '대기업'
+                WHEN COM_TYPE = 'B' THEN '중견기업'
+                WHEN COM_TYPE = 'C' THEN '중소기업'
+                WHEN COM_TYPE = 'D' THEN '외국계기업'
+                WHEN COM_TYPE = 'E' THEN '거래소'
+                WHEN COM_TYPE = 'F' THEN '코스닥'
+                WHEN COM_TYPE = 'G' THEN '기타'
+            END AS COM_TYPE_NM
+			,PUBLIC_YN
+			,COMMISSION
+            ,GUARANTEE
+            ,CON_NM
+            ,DATE_FORMAT(REG_DATE, "%Y-%m-%d") AS REG_DATE
+        FROM 
+            I_COMPANY A,
+            (SELECT @ROWNUM := 0) TMP
+		WHERE 
+			DEL_DATE IS NULL
+		<if test='searchText != null and searchText != ""'>
+		    AND (COM_NM LIKE CONCAT('%', #{searchText, jdbcType=VARCHAR}, '%') 
+		    OR  CON_NM LIKE CONCAT('%', #{searchText, jdbcType=VARCHAR}, '%'))
+		</if>
+		<if test='section != null and section != ""'>
+		    AND SECTION = #{section, jdbcType=CHAR}
+		</if>
+		<if test='industry1 != null and industry1 != ""'>
+		    AND INDUSTRY1 = #{industry1, jdbcType=VARCHAR}
+		</if>
+		<if test='industry2 != null and industry2 != ""'>
+		    AND INDUSTRY2 = #{industry2, jdbcType=VARCHAR} 
+		</if>
+		<if test='comNm != null and comNm != ""'>
+		    AND COM_NM LIKE CONCAT('%', #{comNm, jdbcType=VARCHAR}, '%')
+		</if>
+		<if test='conNm != null and conNm != ""'>
+		    AND CON_NM LIKE CONCAT('%', #{conNm, jdbcType=VARCHAR}, '%')
+		</if>
+		<if test='comType != null and comType != ""'>
+		    AND COM_TYPE = #{comType, jdbcType=CHAR}
+		</if>
+		<if test='guarantee != null and guarantee != ""'>
+		    AND GUARANTEE = #{guarantee, jdbcType=VARCHAR}
+		</if>
+		<if test='(startDate != null  and startDate != "") and (endDate != null and endDate != "")'>
+		    AND DATE_FORMAT(REG_DATE, "%Y-%m-%d") BETWEEN #{startDate} AND #{endDate}
+		</if>
+		<if test='adminYn == "N"'>
+			<choose>
+				<when test='authCompany == "1"'>
+					AND PUBLIC_YN = 'Y'
+					OR (PUBLIC_YN = 'N' AND USR_ID = #{usrId, jdbcType=VARCHAR})
+					OR (PUBLIC_YN = 'N' AND CON_ID = #{conId, jdbcType=VARCHAR})
+				</when>
+				<otherwise>
+					AND CON_ID = #{conId, jdbcType=VARCHAR}
+				</otherwise>
+			</choose>
+		</if>
+        ORDER BY ROWNUM DESC
+        LIMIT #{startRowNum, javaType=INT}, 15
+    </select>
+    
+    <!-- 고객사 리스트 총 개수 -->
+    <select id="getTotalCount" parameterType="hashmap" resultType="int">
+        SELECT 
+        	COUNT(*) 
+        FROM 
+        	I_COMPANY
+        WHERE
+        	DEL_DATE IS NULL
+<!--         <trim prefix="WHERE" prefixOverrides="AND | OR" > -->
+		<if test='searchText != null and searchText != ""'>
+		    AND (COM_NM LIKE CONCAT('%', #{searchText, jdbcType=VARCHAR}, '%') 
+		    OR  CON_NM LIKE CONCAT('%', #{searchText, jdbcType=VARCHAR}, '%')) 
+		</if>
+		<if test='section != null and section != ""'>
+		    AND SECTION = #{section, jdbcType=CHAR}
+		</if>
+		<if test='industry1 != null and industry1 != ""'>
+		    AND INDUSTRY1 = #{industry1, jdbcType=VARCHAR}
+		</if>
+		<if test='industry2 != null and industry2 != ""'>
+		    AND INDUSTRY2 = #{industry2, jdbcType=VARCHAR} 
+		</if>
+		<if test='comNm != null and comNm != ""'>
+		    AND COM_NM = #{comNm, jdbcType=VARCHAR}
+		</if>
+		<if test='conNm != null and conNm != ""'>
+		    AND CON_NM = #{conNm, jdbcType=VARCHAR}
+		</if>
+		<if test='comType != null and comType != ""'>
+		    AND COM_TYPE = #{comType, jdbcType=CHAR}
+		</if>
+		<if test='guarantee != null and guarantee != ""'>
+		    AND GUARANTEE = #{guarantee, jdbcType=VARCHAR}
+		</if>
+		<if test='(startDate != null  and startDate != "") and (endDate != null and endDate != "")'>
+		    AND DATE_FORMAT(REG_DATE, "%Y-%m-%d") BETWEEN #{startDate} AND #{endDate}
+		</if>
+		<if test='adminYn == "N"'>
+			<choose>
+				<when test='authCompany == "1"'>
+					AND PUBLIC_YN = 'Y'
+					OR (PUBLIC_YN = 'N' AND USR_ID = #{usrId, jdbcType=VARCHAR})
+					OR (PUBLIC_YN = 'N' AND CON_ID = #{conId, jdbcType=VARCHAR})
+				</when>
+				<otherwise>
+					AND CON_ID = #{conId, jdbcType=VARCHAR}
+				</otherwise>
+			</choose>
+		</if>
+<!--         </trim> -->
+    </select>
+    
+    <!-- 고객사 상세  -->
+    <select id="getCompany" parameterType="hashmap" resultType="hashmap">
+        SELECT
+            COM_ID
+            ,COM_NM
+            ,SECTION
+            ,CASE WHEN SECTION = 'A' THEN '고객사' WHEN SECTION = 'B' THEN '마케팅' END AS SECTION_NM
+            ,COM_TYPE
+            ,CASE 
+                WHEN COM_TYPE = 'A' THEN '대기업'
+                WHEN COM_TYPE = 'B' THEN '중견기업'
+                WHEN COM_TYPE = 'C' THEN '중소기업'
+                WHEN COM_TYPE = 'D' THEN '외국계기업'
+                WHEN COM_TYPE = 'E' THEN '거래소'
+                WHEN COM_TYPE = 'F' THEN '코스닥'
+                WHEN COM_TYPE = 'G' THEN '기타'
+            END AS COM_TYPE_NM
+            ,SALES
+            ,PEOPLE
+            ,INDUSTRY1
+            ,INDUSTRY2
+            ,FN_CODE_NAME(INDUSTRY1) AS INDUSTRY1_NM
+            ,FN_CODE_NAME(INDUSTRY2) AS INDUSTRY2_NM
+            ,PUBLIC_YN
+            ,CASE WHEN PUBLIC_YN = 'Y' THEN '공개' WHEN PUBLIC_YN = 'N' THEN '비공개' END AS PUBLIC_YN_NM
+            ,SUMMARY
+            ,ADDRESS
+            ,STANDARD
+            ,URL
+            ,SOURCE
+            ,CASE
+            	WHEN SOURCE = '1' THEN 'TM'
+            	WHEN SOURCE = '2' THEN 'EM'
+            	WHEN SOURCE = '3' THEN '방문'
+            	WHEN SOURCE = '4' THEN '지인소개'
+            	WHEN SOURCE = '5' THEN '인바운드'
+            	WHEN SOURCE = '6' THEN '기타'
+            END AS SOURCE_NM
+            ,COMMISSION
+            ,GUARANTEE
+            ,USR_NM
+            ,USR_ID
+            ,CON_ID
+            ,CON_NM
+            ,DATE_FORMAT(REG_DATE, "%Y-%m-%d") AS REG_DATE
+        FROM 
+            I_COMPANY
+        WHERE 
+            COM_ID = #{comId, jdbcType=VARCHAR}
+    </select>
+
+    <!-- 고객사 등록 -->
+    <insert id="setCompany" parameterType="hashmap">
+        <selectKey keyProperty="comId" resultType="string" order="BEFORE">
+            SELECT CONCAT("COM", LPAD(RIGHT(IFNULL(MAX(COM_ID), 0), 8)+1, 8, 0)) FROM I_COMPANY
+        </selectKey>
+        INSERT INTO I_COMPANY
+        (
+            COM_ID
+            ,COM_NM
+            ,SECTION
+            ,COM_TYPE
+            ,SALES
+            ,PEOPLE
+            ,INDUSTRY1
+            ,INDUSTRY2
+            ,PUBLIC_YN
+            ,SUMMARY
+            ,ADDRESS
+            ,STANDARD
+            ,URL
+            ,SOURCE
+            ,COMMISSION
+            ,GUARANTEE
+            ,USR_NM
+            ,CON_ID
+            ,CON_NM
+            ,REG_DATE
+        )
+        VALUES
+        (
+            #{comId, jdbcType=VARCHAR}
+            ,#{comNm, jdbcType=VARCHAR}
+            ,#{section, jdbcType=CHAR}
+            ,#{comType, jdbcType=CHAR}
+            ,#{sales, jdbcType=VARCHAR}
+            ,#{people, jdbcType=VARCHAR}
+            ,#{industry1, jdbcType=VARCHAR}
+            ,#{industry2, jdbcType=VARCHAR}
+            ,#{publicYn, jdbcType=CHAR}
+            ,#{summary, jdbcType=VARCHAR}
+            ,#{address, jdbcType=VARCHAR}
+            ,#{standard, jdbcType=VARCHAR}
+            ,#{url, jdbcType=VARCHAR}
+            ,#{source, jdbcType=CHAR}
+            ,#{commission, jdbcType=VARCHAR}
+            ,#{guarantee, jdbcType=VARCHAR}
+            ,#{usrNm, jdbcType=VARCHAR}
+            ,#{conId, jdbcType=VARCHAR}
+            ,(SELECT CON_NM FROM I_CONSULTANT WHERE CON_ID = #{conId, jdbcType=VARCHAR})
+            ,NOW()
+        )
+    </insert>
+    
+    <!-- 고객사 담당자 -->
+    <insert id="setPerson" parameterType="hashmap">
+        INSERT INTO I_PERSON
+        (
+            COM_ID
+            ,PERSON_NM
+            ,DEPT_NM
+            ,POS_NM
+            ,PHONE1
+            ,PHONE2
+            ,EMAIL
+            ,ETC
+            ,SORT
+            ,REG_DATE
+        )
+        VALUES
+        (
+            #{comId, jdbcType=VARCHAR}
+            ,#{personNm, jdbcType=VARCHAR}
+            ,#{deptNm, jdbcType=VARCHAR}
+            ,#{posNm, jdbcType=VARCHAR}
+            ,#{phone1, jdbcType=VARCHAR}
+            ,#{phone2, jdbcType=VARCHAR}
+            ,#{email, jdbcType=VARCHAR}
+            ,#{etc, jdbcType=VARCHAR}
+            ,#{sort, jdbcType=VARCHAR}
+            ,NOW()
+        )
+    </insert>
+    
+    <!-- 고객사 수정 -->
+    <update id="modCompany" parameterType="hashmap">
+       UPDATE I_COMPANY
+       SET
+            COM_NM = #{comNm, jdbcType=VARCHAR} 
+            ,SECTION = #{section, jdbcType=CHAR} 
+            ,COM_TYPE = #{comType, jdbcType=CHAR}
+            ,SALES = #{sales, jdbcType=VARCHAR}
+            ,PEOPLE = #{people, jdbcType=VARCHAR}
+            ,INDUSTRY1 = #{industry1, jdbcType=VARCHAR}
+            ,INDUSTRY2 = #{industry2, jdbcType=VARCHAR}
+            ,PUBLIC_YN = #{publicYn, jdbcType=CHAR}
+            ,SUMMARY = #{summary, jdbcType=VARCHAR}
+            ,ADDRESS = #{address, jdbcType=VARCHAR}
+            ,STANDARD = #{standard, jdbcType=VARCHAR}
+            ,URL = #{url, jdbcType=VARCHAR}
+            ,SOURCE = #{source, jdbcType=CHAR}
+            ,COMMISSION = #{commission, jdbcType=VARCHAR}
+            ,GUARANTEE = #{guarantee, jdbcType=VARCHAR}
+            ,USR_NM = #{usrNm, jdbcType=VARCHAR}
+            ,CON_ID = #{conId, jdbcType=VARCHAR}
+            ,CON_NM = (SELECT CON_NM FROM I_CONSULTANT WHERE CON_ID = #{conId, jdbcType=VARCHAR})
+            ,MOD_DATE = NOW()
+       WHERE 
+           COM_ID = #{comId, jdbcType=VARCHAR} 
+    </update>
+    
+    <!-- 고객사 삭제 -->
+    <update id="delCompany" parameterType="hashmap">
+        UPDATE I_COMPANY
+        SET
+            DEL_DATE = NOW() 
+        WHERE 
+            COM_ID = #{comId, jdbcType=VARCHAR} 
+    </update>
+    
+	<!-- 고객사 상세 담당자 리스트 -->
+    <select id="getPersonList" parameterType="hashmap" resultType="hashmap">
+        SELECT
+			PERSON_ID
+			,COM_ID
+			,PERSON_NM
+			,DEPT_NM
+			,POS_NM
+			,PHONE1
+			,PHONE2
+			,EMAIL
+			,ETC
+			,SORT
+			,REG_DATE
+        FROM 
+            I_PERSON
+        WHERE 
+            COM_ID = #{comId, jdbcType=VARCHAR}
+    </select>
+    
+    <!-- 고객사 담당자 수정 -->
+    <update id="modPerson" parameterType="hashmap">
+    	UPDATE I_PERSON
+    	SET
+    		PERSON_NM = #{personNm, jdbcType=VARCHAR}
+    		,DEPT_NM = #{deptNm, jdbcType=VARCHAR}
+    		,POS_NM = #{posNm, jdbcType=VARCHAR}
+    		,PHONE1 = #{phone1, jdbcType=VARCHAR}
+    		,PHONE2 = #{phone2, jdbcType=VARCHAR}
+    		,EMAIL = #{email, jdbcType=VARCHAR}
+    		,ETC = #{etc, jdbcType=VARCHAR}
+    		,SORT = #{sort, jdbcType=VARCHAR}
+    		,MOD_DATE = NOW()
+    	WHERE
+    		PERSON_ID = #{personId, jdbcType=INTEGER}
+    </update>
+    
+    <!-- 고객사 담당자 삭제 -->
+    <update id="delPerson" parameterType="hashmap">
+    	UPDATE I_PERSON
+    	SET
+    		DEL_DATE = NOW()
+    	WHERE
+    		PERSON_ID = #{personId, jdbcType=INTEGER}
+    </update>
+    
+</mapper>

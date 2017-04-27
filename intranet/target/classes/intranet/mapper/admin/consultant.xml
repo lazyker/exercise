@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" > 
+
+<mapper namespace="consultant">
+
+    <!-- 컨설턴트 리스트  -->
+    <select id="getConsultantList" parameterType="hashmap" resultType="hashmap">
+        SELECT
+            A.CON_ID
+            ,CON_NM
+            ,RANK
+            ,CON_ORDER
+            ,REPLACE(FIELD, '\r\n', <![CDATA['<br/>']]>) AS FIELD
+            ,PHONE
+            ,MOBILE
+            ,REPLACE(EDU, '\r\n', <![CDATA['<br/>']]>) AS EDU
+            ,B.STORED_FILE_NM
+            ,B.FILE_TYPE
+        FROM 
+            I_CONSULTANT A
+            LEFT JOIN  I_ATTACH B
+            ON (A.CON_ID = B.ORG_ID AND B.DEL_DATE IS NULL)
+        WHERE 
+            A.DEL_DATE IS NULL
+        ORDER BY CON_ORDER
+    </select>
+    
+    <!-- 컨설턴트 상세  -->
+    <select id="getConsultant" parameterType="hashmap" resultType="hashmap">
+        SELECT
+            A.CON_ID
+            ,PASSWORD
+            ,CON_NM
+            ,RANK
+            ,CON_ORDER
+            ,FIELD
+            ,PHONE
+            ,MOBILE
+            ,EMAIL
+            ,EDU
+            ,ADMIN_YN
+            ,AUTH_PUBLIC
+            ,AUTH_COMPANY
+            ,AUTH_POSITION
+            ,AUTH_USER
+            ,AUTH_USER_TYPE
+            ,B.ATT_ID
+            ,B.ORIGINAL_FILE_NM
+            ,B.STORED_FILE_NM
+            ,ROUND(B.FILE_SIZE/1024,1) AS FILE_SIZE
+            ,B.FILE_TYPE
+        FROM 
+            I_CONSULTANT A
+            LEFT JOIN  I_ATTACH B 
+            	ON (A.CON_ID = B.ORG_ID AND B.DEL_DATE IS NULL)
+        WHERE 
+            A.CON_ID = #{conId, jdbcType=VARCHAR}
+    </select>
+
+    <!-- 컨설턴트 추가 -->
+    <insert id="addConsultant" parameterType="hashmap">
+        INSERT INTO I_CONSULTANT
+        (
+            CON_ID
+            ,PASSWORD
+            ,CON_NM
+            ,RANK
+            ,CON_ORDER
+            ,FIELD
+            ,PHONE
+            ,MOBILE
+            ,EMAIL
+            ,EDU
+            ,ADMIN_YN
+            ,AUTH_PUBLIC
+            ,AUTH_COMPANY
+            ,AUTH_POSITION
+            ,AUTH_USER
+            ,AUTH_USER_TYPE
+            ,REG_DATE
+        )
+        VALUES
+        (
+            #{conId, jdbcType=VARCHAR}
+            ,#{password, jdbcType=VARCHAR}
+            ,#{conNm, jdbcType=VARCHAR}
+            ,#{rank, jdbcType=VARCHAR}
+            ,#{conOrder, jdbcType=NUMERIC }
+            ,#{field, jdbcType=VARCHAR}
+            ,#{phone, jdbcType=VARCHAR}
+            ,#{mobile, jdbcType=VARCHAR}
+            ,#{email, jdbcType=VARCHAR}
+            ,#{edu, jdbcType=VARCHAR}
+            ,#{adminYn, jdbcType=CHAR}
+            ,#{authPublic, jdbcType=CHAR}
+            ,#{authCompany, jdbcType=CHAR}
+            ,#{authPosition, jdbcType=CHAR}
+            ,#{authUser, jdbcType=CHAR}
+            ,#{authUserType, jdbcType=CHAR}
+            ,NOW()
+        )
+    </insert>
+    
+    <!-- 컨설턴트 수정 -->
+    <update id="modConsultant" parameterType="hashmap">
+		UPDATE I_CONSULTANT
+		SET
+			CON_NM =  #{conNm, jdbcType=VARCHAR}
+			<if test='password != null and password != ""'>
+				,PASSWORD = #{password, jdbcType=VARCHAR}
+			</if>
+			,RANK = #{rank, jdbcType=VARCHAR}
+			,CON_ORDER = #{conOrder, jdbcType=NUMERIC }
+			,FIELD = #{field, jdbcType=VARCHAR}
+			,PHONE = #{phone, jdbcType=VARCHAR}
+			,MOBILE = #{mobile, jdbcType=VARCHAR}
+			,EDU = #{edu, jdbcType=VARCHAR}
+			,ADMIN_YN = #{adminYn, jdbcType=CHAR}
+			,AUTH_PUBLIC = #{authPublic, jdbcType=CHAR}
+			,AUTH_COMPANY = #{authCompany, jdbcType=CHAR}
+			,AUTH_POSITION = #{authPosition, jdbcType=CHAR}
+			,AUTH_USER = #{authUser, jdbcType=CHAR}
+			,AUTH_USER_TYPE = #{authUserType, jdbcType=CHAR}
+		WHERE 
+			CON_ID = #{conId, jdbcType=VARCHAR} 
+    </update>
+    
+    <!-- 컨설턴트 삭제 -->
+    <update id="delConsultant" parameterType="hashmap">
+        UPDATE I_CONSULTANT
+        SET
+            DEL_DATE = NOW() 
+        WHERE 
+            CON_ID = #{conId, jdbcType=VARCHAR} 
+    </update>
+    
+    <!-- 컨설턴트 이메일 중복 검사 -->
+    <select id="emailCheck" parameterType="hashmap" resultType="int">
+        SELECT
+            COUNT(CON_ID)
+        FROM
+            I_CONSULTANT
+        WHERE 
+            CON_ID = #{conId, jdbcType=VARCHAR}
+    </select>
+    
+    <!-- 컨설턴트 로그인 패스워드 체크 -->
+    <select id="loginCheck" parameterType="hashmap" resultType="int">
+        SELECT
+            COUNT(CON_ID)
+        FROM
+            I_CONSULTANT
+        WHERE 
+            CON_ID = #{conId, jdbcType=VARCHAR} 
+            AND PASSWORD =  #{password, jdbcType=VARCHAR}
+            AND DEL_DATE IS NULL
+    </select>
+    
+    <!-- 로그인 정보 로그 쌓기 -->
+    <insert id="setLoginInfo" parameterType="hashmap">
+        INSERT INTO I_LOGIN_INFO
+        (
+            CON_ID
+            ,IP
+            ,REG_DATE
+            ,PASS_YN
+        )
+        VALUES
+        (
+            #{conId, jdbcType=VARCHAR}
+			,#{ip, jdbcType=VARCHAR}
+			,#{regDate, jdbcType=VARCHAR}
+            ,#{passYn, jdbcType=CHAR}
+        )
+    </insert>
+    
+</mapper>
